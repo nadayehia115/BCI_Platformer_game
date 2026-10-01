@@ -47,11 +47,11 @@ TagManager:
   - name: dicoration_ground1
     uniqueID: 1822884301
     locked: 0
-  - name: player_ground
-    uniqueID: 3079702197
-    locked: 0
   - name: dicoration_ground2
     uniqueID: 2573126231
+    locked: 0
+  - name: player_ground
+    uniqueID: 3079702197
     locked: 0
   m_RenderingLayers:
   - Default
