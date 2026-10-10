@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 5247784452797856219}
   - component: {fileID: 1955152970601369126}
   - component: {fileID: 4700515691892909123}
+  - component: {fileID: 2197250412860868818}
   m_Layer: 0
   m_Name: Pushable_Pillar
   m_TagString: Untagged
@@ -60,7 +61,7 @@ Rigidbody2D:
   m_Interpolate: 0
   m_SleepingMode: 1
   m_CollisionDetection: 0
-  m_Constraints: 4
+  m_Constraints: 5
 --- !u!61 &4700515691892909123
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -95,7 +96,7 @@ BoxCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0.5409355, y: 0.6462201}
+  m_Offset: {x: 0.23056221, y: 0.6462202}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0, y: 0}
@@ -105,8 +106,20 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 3.1691895, y: 5.197583}
+  m_Size: {x: 2.5484428, y: 5}
   m_EdgeRadius: 0
+--- !u!114 &2197250412860868818
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 504243402217164179}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 62a37dcf983edd34498a10ed011dc0f7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PushableObject
 --- !u!1 &508612861420049866
 GameObject:
   m_ObjectHideFlags: 0
