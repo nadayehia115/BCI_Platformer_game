@@ -15,7 +15,7 @@ public static class SusiePushSetup
     const string StrongTag = "StrongPlayer";
 
     [MenuItem("Tools/Setup Susie Box Push")]
-    static void Setup()
+    internal static void Setup()
     {
         CompanionFollow susieFollow = null;
         foreach (var f in Object.FindObjectsByType<CompanionFollow>(FindObjectsInactive.Include, FindObjectsSortMode.None))

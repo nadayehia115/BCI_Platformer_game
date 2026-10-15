@@ -25,7 +25,7 @@ public static class HookPlatformSetup
     const int RalseiSlot = 0;                      // first portrait in the HUD
 
     [MenuItem("Tools/Hang Ralsei Platform On Tree")]
-    static void Hang()
+    internal static void Hang()
     {
         var body = ImportSprite(BodyPath);
         var scarf = ImportSprite(ScarfPath);
@@ -128,6 +128,102 @@ public static class HookPlatformSetup
         Selection.activeGameObject = root;
         EditorGUIUtility.PingObject(root);
         Debug.Log($"'{root.name}' hangs from '{tree.name}' at {root.transform.position}. Save the scene (Ctrl+S).");
+    }
+
+    // Tools > Fix Ralsei Hang Position
+    // For the tree planted into the level's own tilemaps (Tools > Plant Tree In Level Tilemaps): hangs the existing
+    // Ralsei_Hook_Platform from the tip of the long branch (his body then hangs beside the tall step), makes it a child of
+    // that tilemap instead of the Obs_tree prefab instance (which is not drawn in Play), and switches that duplicate tree off.
+    [MenuItem("Tools/Fix Ralsei Hang Position")]
+    internal static void Rehang()
+    {
+        var root = GameObject.Find(PlatformName);
+        if (root == null)
+        {
+            EditorUtility.DisplayDialog("Fix Ralsei Hang Position", "No " + PlatformName + " in the open scene. Run Tools > Hang Ralsei Platform On Tree first.", "OK");
+            return;
+        }
+        var scarfT = root.transform.Find("Scarf");
+        var scarfRenderer = scarfT != null ? scarfT.GetComponent<SpriteRenderer>() : null;
+        if (!scarfRenderer)
+        {
+            EditorUtility.DisplayDialog("Fix Ralsei Hang Position", PlatformName + " has no Scarf child. Run Tools > Hang Ralsei Platform On Tree first.", "OK");
+            return;
+        }
+
+        Tilemap trunk = null;
+        foreach (var tm in Object.FindObjectsByType<Tilemap>(FindObjectsSortMode.None))
+            if (tm.name == "Tilemap_Trunk" && !PrefabUtility.IsPartOfPrefabInstance(tm)) trunk = tm;
+        if (trunk == null || trunk.GetUsedTilesCount() < 10)
+        {
+            EditorUtility.DisplayDialog("Fix Ralsei Hang Position", "The tree is not in Tilemap_Trunk yet. Run Tools > Plant Tree In Level Tilemaps first.", "OK");
+            return;
+        }
+
+        // the trunk is the column with the most tiles; the long branch is the row with the most tiles right of it
+        var perColumn = new Dictionary<int, int>();
+        var cells = new List<Vector3Int>();
+        foreach (var cell in trunk.cellBounds.allPositionsWithin)
+            if (trunk.HasTile(cell)) { cells.Add(cell); perColumn[cell.x] = perColumn.TryGetValue(cell.x, out int n) ? n + 1 : 1; }
+        int trunkX = 0, best = 0;
+        foreach (var kv in perColumn) if (kv.Value > best) { best = kv.Value; trunkX = kv.Key; }
+
+        var perRow = new Dictionary<int, int>();
+        foreach (var c in cells)
+            if (c.x > trunkX && c.x <= trunkX + 6) perRow[c.y] = perRow.TryGetValue(c.y, out int n) ? n + 1 : 1;
+        int branchY = int.MinValue, most = 0;
+        foreach (var kv in perRow) if (kv.Value > most || (kv.Value == most && kv.Key < branchY)) { most = kv.Value; branchY = kv.Key; }
+        if (branchY == int.MinValue)
+        {
+            EditorUtility.DisplayDialog("Fix Ralsei Hang Position", "Could not find a branch to the right of the trunk.", "OK");
+            return;
+        }
+        int branchEndX = trunkX;                                  // the scarf hangs from the tip of the branch, under its hanging leaves
+        foreach (var c in cells) if (c.y == branchY && c.x > branchEndX && c.x <= trunkX + 6) branchEndX = c.x;
+
+        Vector3 hook = trunk.GetCellCenterWorld(new Vector3Int(branchEndX + 1, branchY, 0));
+        Undo.RecordObject(root.transform, "Re-hang Ralsei platform");
+        Vector3 p = root.transform.position;
+        p.x = hook.x - ScarfShaftOffset(scarfRenderer.sprite);                       // the scarf shaft (not the sprite centre) under the branch
+        p.y += (hook.y + KnotCenterBelowTop) - scarfRenderer.bounds.max.y;           // knot round the branch
+        root.transform.position = p;
+        root.transform.SetParent(trunk.transform, true);
+
+        // One tree only: the Obs_tree prefab instance drew a second copy of the same tree. It is only pictures (its one
+        // component is a static body, no colliders), and Ralsei has just been moved off it, so switch it off.
+        int switchedOff = 0;
+        foreach (var tm in Object.FindObjectsByType<Tilemap>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+        {
+            if (!PrefabUtility.IsPartOfPrefabInstance(tm)) continue;
+            var source = PrefabUtility.GetCorrespondingObjectFromSource(tm);
+            if (source == null || AssetDatabase.GetAssetPath(source) != "Assets/prefabs/Obs_tree.prefab") continue;
+            var instanceRoot = PrefabUtility.GetOutermostPrefabInstanceRoot(tm.gameObject);
+            if (instanceRoot != null && instanceRoot.activeSelf && !root.transform.IsChildOf(instanceRoot.transform))
+            {
+                Undo.RecordObject(instanceRoot, "Switch off duplicate tree");
+                instanceRoot.SetActive(false);
+                switchedOff++;
+            }
+        }
+
+        EditorSceneManager.MarkSceneDirty(root.scene);
+        Selection.activeGameObject = root;
+        Debug.Log($"'{PlatformName}' now hangs from the branch tip at tile ({branchEndX + 1}, {branchY}) of Tilemap_Trunk, at {root.transform.position}. " +
+                  $"{(switchedOff > 0 ? "The duplicate Obs_tree was switched off. " : "")}Save the scene (Ctrl+S).");
+    }
+
+    // Horizontal distance from the sprite centre to the middle of the scarf shaft, measured at the middle row of the image.
+    static float ScarfShaftOffset(Sprite sprite)
+    {
+        var tex = new Texture2D(2, 2);
+        tex.LoadImage(File.ReadAllBytes(ScarfPath));
+        var px = tex.GetPixels32();
+        int w = tex.width, row = tex.height / 2, min = w, max = 0;
+        Object.DestroyImmediate(tex);
+        for (int x = 0; x < w; x++)
+            if (px[row * w + x].a > 0) { min = Mathf.Min(min, x); max = Mathf.Max(max, x); }
+        if (min > max) return 0f;
+        return ((min + max + 1) / 2f - w / 2f) / sprite.pixelsPerUnit;
     }
 
     static SpriteRenderer Layer(GameObject root, string name, Sprite sprite)

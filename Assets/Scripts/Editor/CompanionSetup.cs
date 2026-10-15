@@ -20,7 +20,7 @@ public static class CompanionSetup
     static readonly float[] Scales = { 0.72f, 0.31f, 0.70f };
 
     [MenuItem("Tools/Add Companions To Scene")]
-    static void Add()
+    internal static void Add()
     {
         var kris = Object.FindFirstObjectByType<PlayerController>();
         if (kris == null)
