@@ -67,5 +67,5 @@
         "*.sln": "*.csproj",
         "*.slnx": "*.csproj"
     },
-    "dotnet.defaultSolution": "BCI_Platformer_game.slnx"
+    "dotnet.defaultSolution": "bci dr.slnx"
 }
