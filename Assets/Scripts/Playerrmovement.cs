@@ -55,7 +55,9 @@ public class PlayerController : MonoBehaviour
     private void Update()
     {
         // Read raw input in Update
-        horizontalInput = Input.GetAxisRaw("Horizontal");
+        // Keyboard, or the Python script's "move" commands when it is sending them (see RemoteInput)
+        float remote = RemoteInput.Horizontal;
+        horizontalInput = remote != 0f ? remote : Input.GetAxisRaw("Horizontal");
 
         // Handle Visual Flip
         FlipCharacter();
@@ -64,7 +66,7 @@ public class PlayerController : MonoBehaviour
         bool isGrounded = GetIsGrounded();
 
         // Handle Jump (only when standing on the ground)
-        if (Input.GetKeyDown(KeyCode.W) && isGrounded)
+        if (isGrounded && (Input.GetKeyDown(KeyCode.W) || RemoteInput.ConsumeJump()))
         {
             Jump();
         }

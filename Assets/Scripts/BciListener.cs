@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Globalization;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -7,9 +8,10 @@ using System.Threading;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
 
-// Listens for UDP messages from the Python BCI script and drives the CharacterSwitcher.
-// Message format: "toggle" or "toggle|<seq>". With a seq, an "ack|<seq>|<queueMs>" reply is sent
-// back right after the toggle is applied, so the sender can measure end-to-end latency.
+// Listens for UDP messages from the Python script and drives the CharacterSwitcher and the player (via RemoteInput).
+// Messages: toggle | toggle|<seq> | select|<slot> | confirm | move|<-1..1> | jump | ping | quit
+//   toggle|<seq> is answered with "ack|<seq>|<queueMs>" right after it is applied, so the sender can measure latency.
+//   ping is answered with "pong" so the sender knows the game is up.
 [RequireComponent(typeof(CharacterSwitcher))]
 public class BciListener : MonoBehaviour
 {
@@ -81,21 +83,55 @@ public class BciListener : MonoBehaviour
     {
         while (queue.TryDequeue(out Packet p))
         {
-            string[] parts = p.text.Split('|');
-            if (parts[0] != "toggle") continue;
-
-            switcher.Select(switcher.Current + 1);
-
-            // Time the packet sat in the queue waiting for this frame's Update.
-            double queueMs = (Stopwatch.GetTimestamp() - p.receivedTicks) * 1000.0 / Stopwatch.Frequency;
-            Debug.Log($"BciListener toggle applied (waited {queueMs:0.00} ms for the frame)");
-
-            if (parts.Length > 1)
+            string[] parts = p.text.Trim().Split('|');
+            switch (parts[0])
             {
-                byte[] ack = Encoding.UTF8.GetBytes($"ack|{parts[1]}|{queueMs:0.00}");
-                client.Send(ack, ack.Length, p.from);
+                case "toggle":
+                    switcher.Select(switcher.Current + 1);
+
+                    // Time the packet sat in the queue waiting for this frame's Update.
+                    double queueMs = (Stopwatch.GetTimestamp() - p.receivedTicks) * 1000.0 / Stopwatch.Frequency;
+                    Debug.Log($"BciListener toggle applied (waited {queueMs:0.00} ms for the frame)");
+
+                    if (parts.Length > 1) Reply(p, $"ack|{parts[1]}|{queueMs:0.00}");
+                    break;
+
+                case "select":                       // select|<slot>: highlight a specific character (0 = first)
+                    if (parts.Length > 1 && int.TryParse(parts[1], out int slot)) switcher.Select(slot);
+                    break;
+
+                case "confirm":                      // same as pressing Z
+                    switcher.Confirm();
+                    break;
+
+                case "move":                         // move|-1, move|0, move|1: repeat it while the button is "held"
+                    if (parts.Length > 1 && float.TryParse(parts[1], NumberStyles.Float, CultureInfo.InvariantCulture, out float x))
+                        RemoteInput.SetHorizontal(x);
+                    break;
+
+                case "jump":
+                    RemoteInput.RequestJump();
+                    break;
+
+                case "ping":                         // lets the sender wait until the game has started listening
+                    Reply(p, "pong");
+                    break;
+
+                case "quit":                         // the sender is done: stop Play mode in the editor, close a published game
+#if UNITY_EDITOR
+                    UnityEditor.EditorApplication.isPlaying = false;
+#else
+                    Application.Quit();
+#endif
+                    break;
             }
         }
+    }
+
+    void Reply(Packet p, string text)
+    {
+        byte[] data = Encoding.UTF8.GetBytes(text);
+        client.Send(data, data.Length, p.from);
     }
 
     void OnDestroy()
