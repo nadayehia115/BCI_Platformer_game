@@ -928,7 +928,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4591ebd1dc7c15142a8d55cdc5e5782b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LevelGoal
-  timeLimit: 30
+  timeLimit: 120
 --- !u!4 &248280027
 Transform:
   m_ObjectHideFlags: 0

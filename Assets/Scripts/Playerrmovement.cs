@@ -8,7 +8,9 @@ public class PlayerController : MonoBehaviour
 
     [Header("Ground Check")]
     [SerializeField] private LayerMask groundLayer;
-    [SerializeField] private float groundCheckDistance = 0.05f;
+    [SerializeField] private float groundCheckDistance = 0.1f;
+    [Tooltip("How long the Animator still counts Kris as grounded after losing the ground (stops flicker)")]
+    [SerializeField] private float groundedGraceTime = 0.1f;
 
     [Header("Components")]
     [SerializeField] private Rigidbody2D rigidBody;
@@ -17,6 +19,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private Collider2D col;
 
     private float horizontalInput;
+    private float lastGroundedTime;
 
     private void Start()
     {
@@ -55,27 +58,31 @@ public class PlayerController : MonoBehaviour
     private void Update()
     {
         // Read raw input in Update
-        // Keyboard, or the Python script's "move" commands when it is sending them (see RemoteInput)
-        float remote = RemoteInput.Horizontal;
-        horizontalInput = remote != 0f ? remote : Input.GetAxisRaw("Horizontal");
+        horizontalInput = Input.GetAxisRaw("Horizontal");
 
         // Handle Visual Flip
         FlipCharacter();
 
         // Check the ground once per frame and reuse the result
         bool isGrounded = GetIsGrounded();
+        if (isGrounded) lastGroundedTime = Time.time;
 
         // Handle Jump (only when standing on the ground)
-        if (isGrounded && (Input.GetKeyDown(KeyCode.W) || RemoteInput.ConsumeJump()))
+        if (Input.GetKeyDown(KeyCode.W) && isGrounded)
         {
             Jump();
+            lastGroundedTime = -100f; // leave the ground immediately for the animation
         }
 
         // Handle Animator
         if (_animator != null)
         {
+            // Kris counts as grounded for a split second after losing the ground,
+            // so a one-frame flicker while walking doesn't start the fall animation
+            bool animGrounded = Time.time - lastGroundedTime <= groundedGraceTime;
+
             _animator.SetBool("IsRunning", horizontalInput != 0);
-            _animator.SetBool("IsGrounded", isGrounded);
+            _animator.SetBool("IsGrounded", animGrounded);
             _animator.SetFloat("YVelocity", rigidBody.linearVelocity.y);
         }
     }
@@ -99,7 +106,7 @@ public class PlayerController : MonoBehaviour
     private bool GetIsGrounded()
     {
         // Not grounded while moving upward (blocks a second jump right after takeoff)
-        if (rigidBody.linearVelocity.y > 0.01f) return false;
+        if (rigidBody.linearVelocity.y > 0.1f) return false;
 
         // Cast the player's collider shape straight down, just below the feet
         Bounds b = col.bounds;
