@@ -8,6 +8,9 @@ public class LevelGoal : MonoBehaviour
     [Tooltip("Seconds Kris has to reach the flag in to win. Shown as the countdown at the top left.")]
     public float timeLimit = 240f;
 
+    [Tooltip("Score = seconds left when Kris reaches the flag x this number (10 seconds left = 10 x 10 = 100 points).")]
+    public int pointsPerSecond = 10;
+
     void OnDrawGizmos()
     {
         Gizmos.color = new Color(0.2f, 1f, 0.4f, 0.8f);

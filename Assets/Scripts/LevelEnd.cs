@@ -18,6 +18,8 @@ public class LevelEnd : MonoBehaviour
 
     [Tooltip("Seconds Kris has to reach the flag to win.")]
     [SerializeField] float timeLimit = 240f;
+    [Tooltip("Score = seconds left at the flag x this (10 seconds left = 10 x 10 = 100 points).")]
+    [SerializeField] int pointsPerSecond = 10;
 
     public static LevelEnd Instance { get; private set; }
 
@@ -26,6 +28,8 @@ public class LevelEnd : MonoBehaviour
     public float TimeLimit => timeLimit + Bonus;                // the limit including the bonus
     public float Remaining => Mathf.Max(0f, TimeLimit - Elapsed);
     public bool Ended { get; private set; }
+    public int FinalScore { get; private set; }                  // only set once the game has ended: the time left x points per second
+    public int HighScorePlace { get; private set; } = -1;        // 0 = new best score, 1 = second, 2 = third, -1 = not in the top 3
 
     GameObject screen;
 
@@ -80,7 +84,11 @@ public class LevelEnd : MonoBehaviour
     void Start()
     {
         var goal = FindFirstObjectByType<LevelGoal>();
-        if (goal != null) timeLimit = goal.timeLimit;     // set on the Level Goal object in the Inspector
+        if (goal != null)                                  // set on the Level Goal object in the Inspector
+        {
+            timeLimit = goal.timeLimit;
+            pointsPerSecond = goal.pointsPerSecond;
+        }
         CreateGoalZone();
     }
 
@@ -176,6 +184,8 @@ public class LevelEnd : MonoBehaviour
         if (Ended) return;
         Ended = true;
         if (timeRanOut) Elapsed = TimeLimit;
+        FinalScore = win ? Mathf.RoundToInt(Remaining * pointsPerSecond) : 0;    // the score comes only now, at the end: time left x points
+        HighScorePlace = HighScores.Submit(FinalScore);                          // saved on this computer if it is in the top 3 (the menu shows them)
         Time.timeScale = 0f;                             // the game stops behind the screen
         RemoteInput.SetHorizontal(0f);
         BuildScreen(win, message);
@@ -246,18 +256,26 @@ public class LevelEnd : MonoBehaviour
         var frameOuter = Box("Panel frame", screen.transform, new Vector2(1200f, 780f), Color.black, new Vector2(0f, 20f));
         var panel = Box("Panel", frameOuter.transform, new Vector2(1180f, 760f), new Color(0.97f, 0.95f, 0.88f), Vector2.zero);
 
-        var title = Label(win ? "YOU WIN!" : "YOU LOSE", panel.transform, 150f, new Vector2(0f, 250f), new Vector2(1100f, 190f));
+        var title = Label(win ? "YOU WIN!" : "YOU LOSE", panel.transform, 150f, new Vector2(0f, 270f), new Vector2(1100f, 190f));
         title.color = win ? new Color(0.05f, 0.45f, 0.2f) : new Color(0.65f, 0.1f, 0.1f);
-        Label(message, panel.transform, 56f, new Vector2(0f, 130f), new Vector2(1100f, 80f));
-        Label($"TIME   {FormatTime(Elapsed)}   (limit {FormatTime(TimeLimit)})", panel.transform, 64f, new Vector2(0f, 30f), new Vector2(1100f, 90f));
-        Label($"SCORE   {ScoreManager.Score} / {FindTotalGems()}", panel.transform, 64f, new Vector2(0f, -60f), new Vector2(1100f, 90f));
+        Label(message, panel.transform, 52f, new Vector2(0f, 165f), new Vector2(1100f, 80f));
+        Label($"TIME LEFT   {FormatTime(Remaining)}   ({Remaining:0.0} s)", panel.transform, 64f, new Vector2(0f, 80f), new Vector2(1100f, 90f));   // the exact seconds are what the score uses
+        Label($"SCORE   {FinalScore}", panel.transform, 100f, new Vector2(0f, -10f), new Vector2(1100f, 130f));
+        if (HighScorePlace >= 0)
+        {
+            string[] places = { "1ST", "2ND", "3RD" };
+            var best = Label($"NEW HIGH SCORE!   {places[HighScorePlace]} PLACE", panel.transform, 44f, new Vector2(0f, -68f), new Vector2(1100f, 60f));
+            best.color = new Color(0.8f, 0.45f, 0f);
+        }
+        Label(win ? $"{pointsPerSecond} points for every second left   -   gems collected {ScoreManager.Score} / {FindTotalGems()}"
+                  : $"gems collected {ScoreManager.Score} / {FindTotalGems()}", panel.transform, 34f, new Vector2(0f, -112f), new Vector2(1100f, 44f));
 
-        MakeButton("PLAY AGAIN", new Vector2(-300f, -125f), PlayAgain);
-        MakeButton("MAIN MENU", new Vector2(300f, -125f), MainMenu);
-        Label("Enter / R: play again      M / Esc: main menu", panel.transform, 40f, new Vector2(0f, -310f), new Vector2(1100f, 60f));
+        MakeButton("PLAY AGAIN", new Vector2(-300f, -170f), PlayAgain);
+        MakeButton("MAIN MENU", new Vector2(300f, -170f), MainMenu);
+        Label("Enter / R: play again      M / Esc: main menu", panel.transform, 40f, new Vector2(0f, -330f), new Vector2(1100f, 60f));
     }
 
-    // The gems still in the level plus the ones already collected, so the screen can say "score / total".
+    // The gems still in the level plus the ones already collected, so the screen can say "gems collected x / total".
     int FindTotalGems() => ScoreManager.Score + FindObjectsByType<ScorePoint>(FindObjectsSortMode.None).Length;
 
     // The buttons need an EventSystem; the project uses the new Input System, so its UI module is used.

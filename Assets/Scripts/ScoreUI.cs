@@ -3,18 +3,16 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-// On-screen score ("SCORE 3 / 15"), time left ("TIME 3:59", turns red in the last 30 seconds) and three hearts for Kris's
-// lives (a heart greys out for every life lost), top left, in GameScene. It
-// builds its own canvas whenever GameScene loads (from the main menu, directly, or again after play again), so it lives in
-// code instead of in the scene file and survives merges. It listens to ScoreManager.Changed (fed by every ScorePoint gem).
+// The HUD at the top left of GameScene: the time left ("TIME 3:59", turns red in the last 30 seconds) and three hearts for
+// Kris's lives (a heart greys out for every life lost). There is no running score: the score is worked out at the end, from
+// the time left (see LevelEnd). It builds its own canvas whenever GameScene loads (from the main menu, directly, or again
+// after play again), so it lives in code instead of in the scene file and survives merges.
 public class ScoreUI : MonoBehaviour
 {
     const string SceneName = "GameScene";
     const string FontResource = "Fonts/LilitaOne SDF";       // Assets/Resources/Fonts; falls back to TextMeshPro's default font
 
-    TMP_Text label, timeLabel;
-    int total;
-    float pop;
+    TMP_Text timeLabel;
     float lastBonus, bonusFlash;
     Image[] hearts;
     Sprite heartFull, heartEmpty;
@@ -39,8 +37,6 @@ public class ScoreUI : MonoBehaviour
 
     void Awake()
     {
-        total = FindObjectsByType<ScorePoint>(FindObjectsSortMode.None).Length;
-
         var canvas = gameObject.AddComponent<Canvas>();
         canvas.renderMode = RenderMode.ScreenSpaceOverlay;
         canvas.sortingOrder = 50;
@@ -49,21 +45,13 @@ public class ScoreUI : MonoBehaviour
         scaler.referenceResolution = new Vector2(1920f, 1080f);
         scaler.matchWidthOrHeight = 1f;
 
-        var go = new GameObject("Score Text", typeof(RectTransform));
-        go.transform.SetParent(transform, false);
-        var rect = (RectTransform)go.transform;
-        rect.anchorMin = rect.anchorMax = rect.pivot = new Vector2(0f, 1f);
-        rect.anchoredPosition = new Vector2(48f, -36f);
-        rect.sizeDelta = new Vector2(700f, 90f);
-
         var font = Resources.Load<TMP_FontAsset>(FontResource);
-        label = StyleText(go.AddComponent<TextMeshProUGUI>(), font);
 
         var timeGo = new GameObject("Time Text", typeof(RectTransform));
         timeGo.transform.SetParent(transform, false);
         var timeRect = (RectTransform)timeGo.transform;
         timeRect.anchorMin = timeRect.anchorMax = timeRect.pivot = new Vector2(0f, 1f);
-        timeRect.anchoredPosition = new Vector2(48f, -112f);
+        timeRect.anchoredPosition = new Vector2(48f, -36f);
         timeRect.sizeDelta = new Vector2(700f, 90f);
         timeLabel = StyleText(timeGo.AddComponent<TextMeshProUGUI>(), font);
 
@@ -76,7 +64,7 @@ public class ScoreUI : MonoBehaviour
             heart.transform.SetParent(transform, false);
             var heartRect = (RectTransform)heart.transform;
             heartRect.anchorMin = heartRect.anchorMax = heartRect.pivot = new Vector2(0f, 1f);
-            heartRect.anchoredPosition = new Vector2(48f + i * 88f, -196f);
+            heartRect.anchoredPosition = new Vector2(48f + i * 88f, -120f);
             heartRect.sizeDelta = new Vector2(77f, 70f);
             var image = heart.AddComponent<Image>();
             image.preserveAspect = true;
@@ -128,20 +116,6 @@ public class ScoreUI : MonoBehaviour
         return t;
     }
 
-    void OnEnable()
-    {
-        ScoreManager.Changed += OnScore;
-        Show(ScoreManager.Score);
-    }
-
-    void OnDisable() => ScoreManager.Changed -= OnScore;
-
-    void OnScore(int score)
-    {
-        Show(score);
-        pop = 1f;
-    }
-
     // Hearts: full for the lives left, grey for the lives lost; the heart that was just lost pops.
     void ShowLives()
     {
@@ -159,9 +133,7 @@ public class ScoreUI : MonoBehaviour
         }
     }
 
-    void Show(int score) => label.text = total > 0 ? $"SCORE  {score} / {total}" : $"SCORE  {score}";
-
-    // the time left (counts down; red in the last 30 seconds and once it has run out), and a small pop for each gem
+    // the time left (counts down; red in the last 30 seconds and once it has run out; flashes green when a gem adds time)
     void Update()
     {
         var level = LevelEnd.Instance;
@@ -176,9 +148,5 @@ public class ScoreUI : MonoBehaviour
         }
 
         ShowLives();
-
-        if (pop <= 0f) return;
-        pop = Mathf.Max(0f, pop - Time.unscaledDeltaTime * 4f);
-        label.rectTransform.localScale = Vector3.one * (1f + 0.25f * pop);
     }
 }
