@@ -160,34 +160,21 @@ public static class HookPlatformSetup
             return;
         }
 
-        // the trunk is the column with the most tiles; the long branch is the row with the most tiles right of it
-        var perColumn = new Dictionary<int, int>();
-        var cells = new List<Vector3Int>();
-        foreach (var cell in trunk.cellBounds.allPositionsWithin)
-            if (trunk.HasTile(cell)) { cells.Add(cell); perColumn[cell.x] = perColumn.TryGetValue(cell.x, out int n) ? n + 1 : 1; }
-        int trunkX = 0, best = 0;
-        foreach (var kv in perColumn) if (kv.Value > best) { best = kv.Value; trunkX = kv.Key; }
-
-        var perRow = new Dictionary<int, int>();
-        foreach (var c in cells)
-            if (c.x > trunkX && c.x <= trunkX + 6) perRow[c.y] = perRow.TryGetValue(c.y, out int n) ? n + 1 : 1;
-        int branchY = int.MinValue, most = 0;
-        foreach (var kv in perRow) if (kv.Value > most || (kv.Value == most && kv.Key < branchY)) { most = kv.Value; branchY = kv.Key; }
-        if (branchY == int.MinValue)
+        var hooks = FindHooks(trunk);
+        if (hooks.Count == 0)
         {
-            EditorUtility.DisplayDialog("Fix Ralsei Hang Position", "Could not find a branch to the right of the trunk.", "OK");
+            EditorUtility.DisplayDialog("Fix Ralsei Hang Position", "Could not find a tree with a branch in Tilemap_Trunk.", "OK");
             return;
         }
-        int branchEndX = trunkX;                                  // the scarf hangs from the tip of the branch, under its hanging leaves
-        foreach (var c in cells) if (c.y == branchY && c.x > branchEndX && c.x <= trunkX + 6) branchEndX = c.x;
+        Vector3 hook = hooks[0];                                  // the biggest tree: the scarf hangs from the tip of its branch
 
-        Vector3 hook = trunk.GetCellCenterWorld(new Vector3Int(branchEndX + 1, branchY, 0));
         Undo.RecordObject(root.transform, "Re-hang Ralsei platform");
         Vector3 p = root.transform.position;
         p.x = hook.x - ScarfShaftOffset(scarfRenderer.sprite);                       // the scarf shaft (not the sprite centre) under the branch
         p.y += (hook.y + KnotCenterBelowTop) - scarfRenderer.bounds.max.y;           // knot round the branch
         root.transform.position = p;
         root.transform.SetParent(trunk.transform, true);
+        int hookPoints = ConnectHooks(root, trunk, hooks, scarfRenderer);
 
         // One tree only: the Obs_tree prefab instance drew a second copy of the same tree. It is only pictures (its one
         // component is a static body, no colliders), and Ralsei has just been moved off it, so switch it off.
@@ -208,8 +195,93 @@ public static class HookPlatformSetup
 
         EditorSceneManager.MarkSceneDirty(root.scene);
         Selection.activeGameObject = root;
-        Debug.Log($"'{PlatformName}' now hangs from the branch tip at tile ({branchEndX + 1}, {branchY}) of Tilemap_Trunk, at {root.transform.position}. " +
+        Debug.Log($"'{PlatformName}' now hangs from the branch tip at {hook}, at {root.transform.position}. {hookPoints} hook point(s) in the level. " +
                   $"{(switchedOff > 0 ? "The duplicate Obs_tree was switched off. " : "")}Save the scene (Ctrl+S).");
+    }
+
+    // Tools > Add Hook Points To Trees
+    // Puts a HookPoint at the branch tip of every tree in Tilemap_Trunk. When Ralsei is brought in he hangs from the hook point
+    // nearest to Kris, so any number of trees work: add a tree to the tilemap, run this, done.
+    [MenuItem("Tools/Add Hook Points To Trees")]
+    internal static void AddHookPoints()
+    {
+        var root = GameObject.Find(PlatformName);
+        var scarfT = root != null ? root.transform.Find("Scarf") : null;
+        var scarfRenderer = scarfT != null ? scarfT.GetComponent<SpriteRenderer>() : null;
+        Tilemap trunk = null;
+        foreach (var tm in Object.FindObjectsByType<Tilemap>(FindObjectsSortMode.None))
+            if (tm.name == "Tilemap_Trunk" && !PrefabUtility.IsPartOfPrefabInstance(tm)) trunk = tm;
+        if (root == null || !scarfRenderer || trunk == null)
+        {
+            EditorUtility.DisplayDialog("Add Hook Points", "Needs " + PlatformName + " and Tilemap_Trunk in the open scene. Run Tools > Rebuild Level Characters first.", "OK");
+            return;
+        }
+        var hooks = FindHooks(trunk);
+        int count = ConnectHooks(root, trunk, hooks, scarfRenderer);
+        EditorSceneManager.MarkSceneDirty(root.scene);
+        Debug.Log($"{count} hook point(s) for {hooks.Count} tree(s). Save the scene (Ctrl+S).");
+    }
+
+    // One hook point per tree (child of the trunk tilemap, so it moves with it) and the RalseiHang component on the platform.
+    static int ConnectHooks(GameObject root, Tilemap trunk, List<Vector3> hooks, SpriteRenderer scarfRenderer)
+    {
+        foreach (var existing in Object.FindObjectsByType<HookPoint>(FindObjectsSortMode.None))
+            if (existing.transform.IsChildOf(trunk.transform)) Undo.DestroyObjectImmediate(existing.gameObject);   // re-created below
+        foreach (var h in hooks)
+        {
+            var go = new GameObject("Hook Point");
+            Undo.RegisterCreatedObjectUndo(go, "Add hook point");
+            go.transform.SetParent(trunk.transform, false);
+            go.transform.position = h;
+            go.AddComponent<HookPoint>();
+        }
+
+        var hang = root.GetComponent<RalseiHang>();
+        if (!hang) hang = Undo.AddComponent<RalseiHang>(root);
+        // where the knot sits relative to the platform's own position: hook = platform position + this
+        var so = new SerializedObject(hang);
+        so.FindProperty("knotOffset").vector2Value = new Vector2(ScarfShaftOffset(scarfRenderer.sprite),
+            scarfRenderer.bounds.max.y - KnotCenterBelowTop - root.transform.position.y);
+        so.ApplyModifiedPropertiesWithoutUndo();
+        return hooks.Count;
+    }
+
+    // The hook of every tree in the tilemap, biggest tree first. A trunk is a column of at least 5 tiles; the hook is the
+    // centre of the tile just past the tip of its longest branch on the right (else on the left).
+    static List<Vector3> FindHooks(Tilemap trunk)
+    {
+        var cells = new List<Vector3Int>();
+        var perColumn = new Dictionary<int, int>();
+        foreach (var cell in trunk.cellBounds.allPositionsWithin)
+            if (trunk.HasTile(cell)) { cells.Add(cell); perColumn[cell.x] = perColumn.TryGetValue(cell.x, out int n) ? n + 1 : 1; }
+
+        var columns = new List<int>();
+        foreach (var kv in perColumn) if (kv.Value >= 5) columns.Add(kv.Key);
+        columns.Sort((a, b) => perColumn[b].CompareTo(perColumn[a]));            // biggest tree first
+        var trunks = new List<int>();
+        foreach (var x in columns)
+            if (!trunks.Exists(t => Mathf.Abs(t - x) <= 1)) trunks.Add(x);        // a two tile wide trunk counts once
+
+        var hooks = new List<Vector3>();
+        foreach (int trunkX in trunks)
+        {
+            foreach (int side in new[] { 1, -1 })                                // right of the trunk first
+            {
+                var perRow = new Dictionary<int, int>();
+                foreach (var c in cells)
+                    if ((c.x - trunkX) * side > 0 && (c.x - trunkX) * side <= 6) perRow[c.y] = perRow.TryGetValue(c.y, out int n) ? n + 1 : 1;
+                int branchY = int.MinValue, most = 0;
+                foreach (var kv in perRow) if (kv.Value > most || (kv.Value == most && kv.Key < branchY)) { most = kv.Value; branchY = kv.Key; }
+                if (branchY == int.MinValue) continue;
+
+                int tipX = trunkX;
+                foreach (var c in cells)
+                    if (c.y == branchY && (c.x - trunkX) * side > 0 && (c.x - trunkX) * side <= 6 && (c.x - tipX) * side > 0) tipX = c.x;
+                hooks.Add(trunk.GetCellCenterWorld(new Vector3Int(tipX + side, branchY, 0)));
+                break;
+            }
+        }
+        return hooks;
     }
 
     // Horizontal distance from the sprite centre to the middle of the scarf shaft, measured at the middle row of the image.

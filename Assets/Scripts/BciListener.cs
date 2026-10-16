@@ -9,7 +9,7 @@ using UnityEngine;
 using Debug = UnityEngine.Debug;
 
 // Listens for UDP messages from the Python script and drives the CharacterSwitcher and the player (via RemoteInput).
-// Messages: toggle | toggle|<seq> | select|<slot> | confirm | move|<-1..1> | jump | ping | quit
+// Messages: toggle | toggle|<seq> | select|<slot> | confirm | switch | move|<-1..1> | jump | ping | quit
 //   toggle|<seq> is answered with "ack|<seq>|<queueMs>" right after it is applied, so the sender can measure latency.
 //   ping is answered with "pong" so the sender knows the game is up.
 [RequireComponent(typeof(CharacterSwitcher))]
@@ -102,6 +102,10 @@ public class BciListener : MonoBehaviour
 
                 case "confirm":                      // same as pressing Z
                     switcher.Confirm();
+                    break;
+
+                case "switch":                       // one button for both: hide whoever is out, bring the next character in
+                    switcher.Advance();
                     break;
 
                 case "move":                         // move|-1, move|0, move|1: repeat it while the button is "held"

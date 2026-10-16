@@ -1,0 +1,832 @@
+fileFormatVersion: 2
+guid: e1b53114bf030bb429063c1b310a0ff2
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -6085058974946327761
+    second: fx_snow_a_0
+  - first:
+      213: -5734042228120546552
+    second: fx_snow_a_1
+  - first:
+      213: 6724220309051510966
+    second: fx_snow_a_2
+  - first:
+      213: 5550186320222233702
+    second: fx_snow_a_3
+  - first:
+      213: -4228577590948796911
+    second: fx_snow_a_4
+  - first:
+      213: 3646801774740380337
+    second: fx_snow_a_5
+  - first:
+      213: 2818686804175756123
+    second: fx_snow_a_6
+  - first:
+      213: -5442277363919771991
+    second: fx_snow_a_7
+  - first:
+      213: -2880946884100296246
+    second: fx_snow_a_8
+  - first:
+      213: -6037247062666649971
+    second: fx_snow_a_9
+  - first:
+      213: -5037537635133863195
+    second: fx_snow_a_10
+  - first:
+      213: 9100834783959972600
+    second: fx_snow_a_11
+  - first:
+      213: -8235456680628074481
+    second: fx_snow_a_12
+  - first:
+      213: -6875808987121724503
+    second: fx_snow_a_13
+  - first:
+      213: -2419350721966765028
+    second: fx_snow_a_14
+  - first:
+      213: -4232609257456109699
+    second: fx_snow_a_15
+  - first:
+      213: 353412651756772565
+    second: fx_snow_a_16
+  - first:
+      213: -4156139319750213060
+    second: fx_snow_a_17
+  - first:
+      213: 7738179530201056542
+    second: fx_snow_a_18
+  - first:
+      213: -4002928779662309478
+    second: fx_snow_a_19
+  - first:
+      213: -528471560450394531
+    second: fx_snow_a_20
+  - first:
+      213: 5299741278335770954
+    second: fx_snow_a_21
+  - first:
+      213: 308355348941616689
+    second: fx_snow_a_22
+  - first:
+      213: -9136893665419298143
+    second: fx_snow_a_23
+  - first:
+      213: -8927542867565034153
+    second: fx_snow_a_24
+  - first:
+      213: 3192919383431474288
+    second: fx_snow_a_25
+  - first:
+      213: -7549724234707868588
+    second: fx_snow_a_26
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 0
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 1
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 16
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: fx_snow_a_0
+      rect:
+        serializedVersion: 2
+        x: 14
+        y: 102
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f2385013a178d8ba0800000000000000
+      internalID: -6085058974946327761
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_snow_a_1
+      rect:
+        serializedVersion: 2
+        x: 29
+        y: 95
+        width: 12
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 80319c949f69c60b0800000000000000
+      internalID: -5734042228120546552
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_snow_a_2
+      rect:
+        serializedVersion: 2
+        x: 37
+        y: 107
+        width: 13
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6b09b70aeba315d50800000000000000
+      internalID: 6724220309051510966
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_snow_a_3
+      rect:
+        serializedVersion: 2
+        x: 49
+        y: 101
+        width: 16
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 66424165d09360d40800000000000000
+      internalID: 5550186320222233702
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_snow_a_4
+      rect:
+        serializedVersion: 2
+        x: 67
+        y: 95
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 116e152c5131155c0800000000000000
+      internalID: -4228577590948796911
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_snow_a_5
+      rect:
+        serializedVersion: 2
+        x: 74
+        y: 108
+        width: 11
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1ba1aad74ea0c9230800000000000000
+      internalID: 3646801774740380337
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_snow_a_6
+      rect:
+        serializedVersion: 2
+        x: 89
+        y: 100
+        width: 12
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b5b1affd6bcfd1720800000000000000
+      internalID: 2818686804175756123
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_snow_a_7
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 92
+        width: 11
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9a6a96a62952974b0800000000000000
+      internalID: -5442277363919771991
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_snow_a_8
+      rect:
+        serializedVersion: 2
+        x: 8
+        y: 85
+        width: 14
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ac1fe64a212d408d0800000000000000
+      internalID: -2880946884100296246
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_snow_a_9
+      rect:
+        serializedVersion: 2
+        x: 45
+        y: 86
+        width: 12
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d8edb7088c3673ca0800000000000000
+      internalID: -6037247062666649971
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_snow_a_10
+      rect:
+        serializedVersion: 2
+        x: 7
+        y: 65
+        width: 14
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5ea4f2bf532171ab0800000000000000
+      internalID: -5037537635133863195
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_snow_a_11
+      rect:
+        serializedVersion: 2
+        x: 26
+        y: 70
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8faf3798409ac4e70800000000000000
+      internalID: 9100834783959972600
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_snow_a_12
+      rect:
+        serializedVersion: 2
+        x: 58
+        y: 77
+        width: 13
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f08cb0448c7c5bd80800000000000000
+      internalID: -8235456680628074481
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_snow_a_13
+      rect:
+        serializedVersion: 2
+        x: 78
+        y: 74
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9a3db23e7283490a0800000000000000
+      internalID: -6875808987121724503
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_snow_a_14
+      rect:
+        serializedVersion: 2
+        x: 2
+        y: 53
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c1c061e265dbc6ed0800000000000000
+      internalID: -2419350721966765028
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_snow_a_15
+      rect:
+        serializedVersion: 2
+        x: 16
+        y: 47
+        width: 16
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d777c404e40c245c0800000000000000
+      internalID: -4232609257456109699
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_snow_a_16
+      rect:
+        serializedVersion: 2
+        x: 41
+        y: 53
+        width: 12
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5dc571f2fe297e400800000000000000
+      internalID: 353412651756772565
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_snow_a_17
+      rect:
+        serializedVersion: 2
+        x: 53
+        y: 60
+        width: 12
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c3241411f4d6256c0800000000000000
+      internalID: -4156139319750213060
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_snow_a_18
+      rect:
+        serializedVersion: 2
+        x: 62
+        y: 47
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e1545d9b849836b60800000000000000
+      internalID: 7738179530201056542
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_snow_a_19
+      rect:
+        serializedVersion: 2
+        x: 85
+        y: 51
+        width: 12
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a974a0bbb7db278c0800000000000000
+      internalID: -4002928779662309478
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_snow_a_20
+      rect:
+        serializedVersion: 2
+        x: 3
+        y: 37
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d56357d6aed7aa8f0800000000000000
+      internalID: -528471560450394531
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_snow_a_21
+      rect:
+        serializedVersion: 2
+        x: 15
+        y: 28
+        width: 16
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a41ada80d967c8940800000000000000
+      internalID: 5299741278335770954
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_snow_a_22
+      rect:
+        serializedVersion: 2
+        x: 41
+        y: 33
+        width: 16
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 136b14e5e8f774400800000000000000
+      internalID: 308355348941616689
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_snow_a_23
+      rect:
+        serializedVersion: 2
+        x: 65
+        y: 24
+        width: 14
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1aa7a22ee9b333180800000000000000
+      internalID: -9136893665419298143
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_snow_a_24
+      rect:
+        serializedVersion: 2
+        x: 88
+        y: 33
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 755c6b5ef0ffa1480800000000000000
+      internalID: -8927542867565034153
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_snow_a_25
+      rect:
+        serializedVersion: 2
+        x: 49
+        y: 19
+        width: 14
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 07c64ed23478f4c20800000000000000
+      internalID: 3192919383431474288
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_snow_a_26
+      rect:
+        serializedVersion: 2
+        x: 33
+        y: 5
+        width: 14
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 45464160fcdf93790800000000000000
+      internalID: -7549724234707868588
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 5e97eb03825dee720800000000000000
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      fx_snow_a_0: -6085058974946327761
+      fx_snow_a_1: -5734042228120546552
+      fx_snow_a_10: -5037537635133863195
+      fx_snow_a_11: 9100834783959972600
+      fx_snow_a_12: -8235456680628074481
+      fx_snow_a_13: -6875808987121724503
+      fx_snow_a_14: -2419350721966765028
+      fx_snow_a_15: -4232609257456109699
+      fx_snow_a_16: 353412651756772565
+      fx_snow_a_17: -4156139319750213060
+      fx_snow_a_18: 7738179530201056542
+      fx_snow_a_19: -4002928779662309478
+      fx_snow_a_2: 6724220309051510966
+      fx_snow_a_20: -528471560450394531
+      fx_snow_a_21: 5299741278335770954
+      fx_snow_a_22: 308355348941616689
+      fx_snow_a_23: -9136893665419298143
+      fx_snow_a_24: -8927542867565034153
+      fx_snow_a_25: 3192919383431474288
+      fx_snow_a_26: -7549724234707868588
+      fx_snow_a_3: 5550186320222233702
+      fx_snow_a_4: -4228577590948796911
+      fx_snow_a_5: 3646801774740380337
+      fx_snow_a_6: 2818686804175756123
+      fx_snow_a_7: -5442277363919771991
+      fx_snow_a_8: -2880946884100296246
+      fx_snow_a_9: -6037247062666649971
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

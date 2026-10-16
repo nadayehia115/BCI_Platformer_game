@@ -1,16 +1,16 @@
+using System.Collections.Generic;
 using UnityEngine;
 
-// Susie's job in the level: when she is brought in with Z she appears on the left of the pushable box, walks right and
-// shoves it along the ground (she is tagged StrongPlayer, which is what unfreezes the box's X movement, see PushableObject)
-// until it drops into the hole. Once it has settled in the hole she is done and disappears.
+// Susie's job in the level: when she is brought in she picks the pushable box nearest to Kris that has not been put away yet,
+// appears against its left side, walks right and shoves it along the ground (she is tagged StrongPlayer, which is what
+// unfreezes a box's X movement, see PushableObject) until it drops into the hole to its right. Once it has settled in the
+// hole she is done and disappears; the next time she is brought in she takes the next box.
+// Any number of boxes (PushableObject) in the scene work: nothing has to be assigned per box, the hole is found by looking
+// for the first gap in the ground to the right of the box.
 [RequireComponent(typeof(Rigidbody2D), typeof(SpriteRenderer))]
 public class SusiePusher : MonoBehaviour
 {
     [SerializeField] CharacterSwitcher switcher;
-    [SerializeField] Rigidbody2D box;
-    [Tooltip("World X of the left and right edge of the hole.")]
-    [SerializeField] float holeLeft;
-    [SerializeField] float holeRight;
     [SerializeField] float walkSpeed = 2.2f;
     [Tooltip("Gap between her hands and the box when she appears (world units). Slightly negative = her hands sit a touch into the box, so both hands touch it.")]
     [SerializeField] float handGap = -0.05f;
@@ -19,13 +19,20 @@ public class SusiePusher : MonoBehaviour
     [SerializeField] float footAdjust = 0f;
     [Tooltip("Her pose while she is shoving the box (drawn facing left, so it is flipped to face the box).")]
     [SerializeField] Sprite pushSprite;
+    [Tooltip("How far to the right of a box she looks for a hole (world units).")]
+    [SerializeField] float holeSearchDistance = 60f;
 
     Rigidbody2D body;
     SpriteRenderer sprite;
     Animator animator;
-    Collider2D boxCollider;
     Collider2D ownCollider;
     float feetBelowPivot;            // local feet height of the standing sprite times scale (a negative number)
+
+    // the box she is working on, and the hole it has to go into
+    Rigidbody2D box;
+    Collider2D boxCollider;
+    float holeLeft, holeRight;
+    readonly HashSet<Rigidbody2D> finished = new HashSet<Rigidbody2D>();    // boxes already in their holes
     float settled;
     bool done;
 
@@ -35,7 +42,6 @@ public class SusiePusher : MonoBehaviour
         sprite = GetComponent<SpriteRenderer>();
         animator = GetComponent<Animator>();
         ownCollider = GetComponent<Collider2D>();
-        if (box != null) boxCollider = box.GetComponent<Collider2D>();
 
         ShowPose();
         FitColliderToPose();
@@ -50,9 +56,8 @@ public class SusiePusher : MonoBehaviour
 
     void OnEnable()
     {
-        if (box == null || boxCollider == null) return;
         settled = 0f;
-        done = InHole();                       // the job was already done: show nothing, and Update puts her away
+        done = !ChooseBox();                   // no box left to push: show nothing, and Update puts her away
         sprite.enabled = !done;
         if (ownCollider != null) ownCollider.enabled = !done;
         if (done) return;
@@ -65,6 +70,89 @@ public class SusiePusher : MonoBehaviour
         body.position = new Vector2(x, ground - feetBelowPivot + footAdjust);
         transform.position = body.position;
     }
+
+    // ---- choosing the box and finding its hole ----
+
+    // The box nearest to Kris (to her, if there is no Kris) that is on screen, not in a hole yet, and has a hole to its right.
+    bool ChooseBox()
+    {
+        var kris = FindFirstObjectByType<PlayerController>();
+        float from = kris != null ? kris.transform.position.x : transform.position.x;
+
+        Rigidbody2D best = null;
+        float bestDistance = float.MaxValue, bestLeft = 0f, bestRight = 0f;
+        foreach (var pushable in FindObjectsByType<PushableObject>(FindObjectsSortMode.None))
+        {
+            var rb = pushable.GetComponent<Rigidbody2D>();
+            var col = pushable.GetComponent<Collider2D>();
+            if (rb == null || col == null || finished.Contains(rb)) continue;
+            if (!WorkRange.OnScreen(col.bounds.center.x)) continue;        // only a box the player can see
+            if (!FindHole(col, out float left, out float right)) continue;
+
+            float distance = Mathf.Abs(col.bounds.center.x - from);
+            if (distance < bestDistance)
+            {
+                best = rb;
+                bestDistance = distance;
+                bestLeft = left;
+                bestRight = right;
+            }
+        }
+        if (best == null) return false;
+
+        box = best;
+        boxCollider = best.GetComponent<Collider2D>();
+        holeLeft = bestLeft;
+        holeRight = bestRight;
+        return true;
+    }
+
+    // The hole = the first stretch to the right of the box where there is no ground at the level the box stands on.
+    bool FindHole(Collider2D boxCol, out float left, out float right)
+    {
+        left = right = 0f;
+        const float step = 0.25f;
+        var b = boxCol.bounds;
+        float x = b.max.x + step, limit = b.max.x + holeSearchDistance;
+
+        while (x < limit && HasGround(x, b.min.y)) x += step;                  // along the ground to the first gap
+        if (x >= limit) return false;
+        left = Refine(x - step, x, b.min.y, groundAtLow: true);
+
+        while (x < limit && !HasGround(x, b.min.y)) x += step;                 // and across the gap
+        if (x >= limit) return false;
+        right = Refine(x - step, x, b.min.y, groundAtLow: false);
+        return right > left;
+    }
+
+    // Bisect between a point without / with ground to pin the edge down to a few millimetres.
+    float Refine(float low, float high, float level, bool groundAtLow)
+    {
+        for (int i = 0; i < 6; i++)
+        {
+            float mid = (low + high) / 2f;
+            if (HasGround(mid, level) == groundAtLow) low = mid; else high = mid;
+        }
+        return (low + high) / 2f;
+    }
+
+    // Is there ground at the box's level at this x? (a short ray from just above the level to just below it)
+    bool HasGround(float x, float level)
+    {
+        foreach (var hit in Physics2D.RaycastAll(new Vector2(x, level + 0.3f), Vector2.down, 0.8f))
+            if (IsGround(hit.collider)) return true;
+        return false;
+    }
+
+    // Anything solid that is not Susie, a pushable box, or the player counts as ground.
+    bool IsGround(Collider2D c)
+    {
+        if (c.isTrigger || c == ownCollider || c.GetComponent<PushableObject>() != null) return false;
+        var rb = c.attachedRigidbody;
+        return rb == null || (rb.GetComponent<PlayerController>() == null && rb.GetComponent<PushableObject>() == null);
+    }
+
+    // ---- the pose and the collider ----
 
     // She is always drawn in her pushing pose (no idle / run animation): the animator is switched off and the pose,
     // drawn facing left, is flipped to face the box.
@@ -98,6 +186,8 @@ public class SusiePusher : MonoBehaviour
         return ownCollider != null ? ownCollider.bounds.max.x - transform.position.x : 0f;
     }
 
+    // ---- the push ----
+
     void Update()
     {
         if (done) Finish();
@@ -117,7 +207,11 @@ public class SusiePusher : MonoBehaviour
         body.MovePosition(pos);
 
         if (InHole() && box.linearVelocity.sqrMagnitude < 0.01f) settled += Time.fixedDeltaTime; else settled = 0f;
-        if (settled >= settleSeconds) done = true;
+        if (settled >= settleSeconds)
+        {
+            finished.Add(box);                                       // this box is put away; the next time she takes another one
+            done = true;
+        }
     }
 
     bool InHole()
@@ -126,13 +220,13 @@ public class SusiePusher : MonoBehaviour
         return b.min.x >= holeLeft - 0.1f && b.max.x <= holeRight + 0.1f;
     }
 
-    // Surface height under x: a ray straight down that ignores triggers, Susie and the box. `fallback` if nothing is hit.
+    // Surface height under x: a ray straight down that ignores triggers, Susie and the boxes. `fallback` if nothing is hit.
     float GroundAt(float x, float fromY, float fallback)
     {
         foreach (var hit in Physics2D.RaycastAll(new Vector2(x, fromY), Vector2.down, 8f))
         {
             var c = hit.collider;
-            if (c.isTrigger || c == ownCollider || c == boxCollider) continue;
+            if (c.isTrigger || c == ownCollider || c.GetComponent<PushableObject>() != null) continue;
             return hit.point.y;
         }
         return fallback;

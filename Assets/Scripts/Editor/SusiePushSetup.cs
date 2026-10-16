@@ -8,7 +8,7 @@ using UnityEngine.Tilemaps;
 // Turns Susie (under Companions) from a follower into the one who pushes the pushable box into the hole:
 //   * removes her CompanionFollow, gives her a kinematic body + a collider round her body (not the axe) and the
 //     StrongPlayer tag, which is what unfreezes the box's X movement (PushableObject)
-//   * finds the hole in Tilemap_Ground to the right of the box and passes its left / right edge to SusiePusher
+//   * she finds the box (any number of them) and its hole by herself while the game runs, nothing is assigned per box
 // Run it after Tools > Add Companions To Scene (re-running that tool brings the follower Susie back).
 public static class SusiePushSetup
 {
@@ -31,16 +31,8 @@ public static class SusiePushSetup
             return;
         }
 
-        var box = Object.FindFirstObjectByType<PushableObject>();
-        if (box == null)
-        {
-            EditorUtility.DisplayDialog("Setup Susie Box Push", "No pushable box (PushableObject) in the open scene. Open GameScene first.", "OK");
-            return;
-        }
-        var boxCollider = box.GetComponent<Collider2D>();
-        var boxBody = box.GetComponent<Rigidbody2D>();
-
-        if (!FindHole(box, boxCollider, out float holeLeft, out float holeRight)) return;
+        int boxes = Object.FindObjectsByType<PushableObject>(FindObjectsSortMode.None).Length;
+        if (boxes == 0) Debug.LogWarning("There is no pushable box (PushableObject) in the open scene yet; Susie will have nothing to push.");
 
         if (susieFollow != null) Undo.DestroyObjectImmediate(susieFollow);
 
@@ -64,9 +56,6 @@ public static class SusiePushSetup
         if (!pusher) pusher = Undo.AddComponent<SusiePusher>(susie);
         var so = new SerializedObject(pusher);
         so.FindProperty("switcher").objectReferenceValue = Object.FindFirstObjectByType<CharacterSwitcher>();
-        so.FindProperty("box").objectReferenceValue = boxBody;
-        so.FindProperty("holeLeft").floatValue = holeLeft;
-        so.FindProperty("holeRight").floatValue = holeRight;
         so.FindProperty("pushSprite").objectReferenceValue = pose;
         so.ApplyModifiedPropertiesWithoutUndo();
 
@@ -81,46 +70,7 @@ public static class SusiePushSetup
 
         EditorSceneManager.MarkSceneDirty(susie.scene);
         Selection.activeGameObject = susie;
-        Debug.Log($"Susie pushes '{box.name}' into the hole between x={holeLeft:0.00} and x={holeRight:0.00}. Save the scene (Ctrl+S).");
-    }
-
-    // The hole = the first gap to the right of the box in the ground tilemap's top row, measured at the box's own ground level.
-    static bool FindHole(PushableObject box, Collider2D boxCollider, out float left, out float right)
-    {
-        left = right = 0f;
-        Tilemap ground = null;
-        foreach (var tm in Object.FindObjectsByType<Tilemap>(FindObjectsSortMode.None))
-            if (tm.name == "Tilemap_Ground") ground = tm;
-        if (ground == null)
-        {
-            EditorUtility.DisplayDialog("Setup Susie Box Push", "No Tilemap_Ground in the open scene.", "OK");
-            return false;
-        }
-
-        var b = boxCollider.bounds;
-        var boxCell = ground.WorldToCell(new Vector3(b.center.x, b.min.y + 0.05f, 0f));
-        int row = int.MinValue;                      // top row of the ground under the box
-        for (int y = boxCell.y; y > boxCell.y - 30; y--)
-            if (ground.HasTile(new Vector3Int(boxCell.x, y, 0))) { row = y; break; }
-        if (row == int.MinValue)
-        {
-            EditorUtility.DisplayDialog("Setup Susie Box Push", "Could not find ground under the box. Is it floating far above the ground?", "OK");
-            return false;
-        }
-
-        int x = boxCell.x, limit = boxCell.x + 80;
-        while (x < limit && ground.HasTile(new Vector3Int(x, row, 0))) x++;          // walk to the right to the first gap
-        if (x >= limit)
-        {
-            EditorUtility.DisplayDialog("Setup Susie Box Push", "No hole found to the right of the box.", "OK");
-            return false;
-        }
-        int gapStart = x;
-        while (x < limit && !ground.HasTile(new Vector3Int(x, row, 0))) x++;         // and to the end of the gap
-
-        left = ground.CellToWorld(new Vector3Int(gapStart, row, 0)).x;
-        right = ground.CellToWorld(new Vector3Int(x, row, 0)).x;
-        return true;
+        Debug.Log($"Susie is ready: she pushes the nearest of the {boxes} box(es) in the scene into the hole to its right, one box per Z. Save the scene (Ctrl+S).");
     }
 
     // A box around the whole drawn pose, hands to feet, so the front of the collider is where her hands are and she touches

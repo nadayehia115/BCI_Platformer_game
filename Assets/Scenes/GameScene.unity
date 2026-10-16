@@ -899,6 +899,51 @@ Transform:
   - {fileID: 684988112}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &248280025
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 248280027}
+  - component: {fileID: 248280026}
+  m_Layer: 0
+  m_Name: Level Goal
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &248280026
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 248280025}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4591ebd1dc7c15142a8d55cdc5e5782b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LevelGoal
+  timeLimit: 30
+--- !u!4 &248280027
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 248280025}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 170.5, y: 2.5, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &310201002
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1991,6 +2036,17 @@ MonoBehaviour:
   m_ShadowLayerMask: 1
   m_RenderingLayers: 1
   m_ShadowRenderingLayers: 1
+--- !u!114 &426248334 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3510798950708468873, guid: 8a30e4c940208a740aa6e24a3cfe5b9f, type: 3}
+  m_PrefabInstance: {fileID: 689131067}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5af0e021c1ffeca47986ace2b73c56aa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CharacterSwitcher
 --- !u!1001 &438481127
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2548,14 +2604,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SusiePusher
   switcher: {fileID: 1528616488}
-  box: {fileID: 831282034}
-  holeLeft: 61
-  holeRight: 65
   walkSpeed: 2.2
   handGap: -0.05
   settleSeconds: 0.5
   footAdjust: 0
   pushSprite: {fileID: 21300000, guid: ab8497855d79d0c4b8e4d4344f671b9c, type: 3}
+  holeSearchDistance: 60
 --- !u!61 &684988114
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -2935,11 +2989,6 @@ Transform:
   - {fileID: 1630653468}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!50 &831282034 stripped
-Rigidbody2D:
-  m_CorrespondingSourceObject: {fileID: 1955152970601369126, guid: 89138e8747e87e64faf2bc97056204f7, type: 3}
-  m_PrefabInstance: {fileID: 1702814790}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &832575517
 GameObject:
   m_ObjectHideFlags: 0
@@ -4181,7 +4230,8 @@ GameObject:
   - component: {fileID: 1213562074}
   - component: {fileID: 1213562073}
   - component: {fileID: 1213562072}
-  - component: {fileID: 1213562071}
+  - component: {fileID: 1213562075}
+  - component: {fileID: 1213562076}
   m_Layer: 0
   m_Name: Noelle
   m_TagString: Untagged
@@ -4189,25 +4239,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 0
---- !u!114 &1213562071
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1213562070}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0ff07ed7f938a524ebb0b61609308c02, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::CompanionFollow
-  target: {fileID: 731518540}
-  distanceBehind: 1.4
-  heightOffset: 0
-  followSpeed: 7
-  footAdjust: 0
-  runThreshold: 0.1
-  groundedThreshold: 0.05
 --- !u!95 &1213562072
 Animator:
   serializedVersion: 7
@@ -4275,9 +4306,9 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingLayerID: -1215265099
+  m_SortingLayer: 4
+  m_SortingOrder: 1
   m_MaskInteraction: 0
   m_Sprite: {fileID: 21300000, guid: efd2bb58b0967664ba62b101059b4eec, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -4304,6 +4335,69 @@ Transform:
   m_Children: []
   m_Father: {fileID: 203568584}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1213562075
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1213562070}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1f27ab9d2b7ec4b4d8eebee87c82d572, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::NoelleFreeze
+  switcher: {fileID: 426248334}
+  castDelay: 0.7
+  tileDelay: 0.06
+  stormFadeSeconds: 0.9
+  maxCastSeconds: 15
+  edgeGap: 0
+  footAdjust: 0
+  iceTint: {r: 0.86, g: 0.93, b: 0.97, a: 0.6}
+  castFrames:
+  - {fileID: 21300000, guid: 4754157384227424e8c269c4d29a3a4b, type: 3}
+  - {fileID: 21300000, guid: 0cde7a6bc00482a42b3b2d6e240502a1, type: 3}
+  - {fileID: 21300000, guid: 866528ea93b39254680b9c1ea56a201c, type: 3}
+  - {fileID: 21300000, guid: 8390613aef4a36e43934fef845524b31, type: 3}
+  - {fileID: 21300000, guid: 10133bee80fbfaa4f934d9c885ecfd1e, type: 3}
+  - {fileID: 21300000, guid: c9755f802282af7418976beb43f735cb, type: 3}
+  - {fileID: 21300000, guid: 0bea85075dd7b6c43a79e82a9cd54879, type: 3}
+  - {fileID: 21300000, guid: 70d5634d63c46bb4e95ebd4160bef340, type: 3}
+  - {fileID: 21300000, guid: 30cf5396a8bdd214e8de80976eef8119, type: 3}
+  - {fileID: 21300000, guid: 54c910b550b468c4b906059c58850d87, type: 3}
+  - {fileID: 21300000, guid: d4fc566de533afd47ae94b9ce078b711, type: 3}
+  - {fileID: 21300000, guid: ba8c7253fa61aec40977f2d9d58490c0, type: 3}
+  - {fileID: 21300000, guid: db1b7e1056385c44889dd88cea85800d, type: 3}
+  - {fileID: 21300000, guid: 6c40a864f0a52984fa1f802bbad33521, type: 3}
+  - {fileID: 21300000, guid: c95fac14951e44e46865ca412b7f9768, type: 3}
+  - {fileID: 21300000, guid: 45c024e588513364a8b08a428852cc92, type: 3}
+  - {fileID: 21300000, guid: f6c6d63c4d875354287eae749d64d6b8, type: 3}
+  - {fileID: 21300000, guid: d608b3bbd05738644b78bdab48fdc0c8, type: 3}
+  frameRate: 10
+  spellFrame: 7
+  releaseFrame: 14
+  riseHeight: 1
+  driftToPool: 0.8
+  hoverSeconds: 1.4
+--- !u!114 &1213562076
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1213562070}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d561beaada222224f811f439e987d16d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::NoelleEffects
+  orb: {fileID: 21300000, guid: 7ab492cecbb948747b162bdacf07405c, type: 3}
+  flash: {fileID: 21300000, guid: ed0576287704ef14ea19c8f32c8cac8e, type: 3}
+  patch: {fileID: 21300000, guid: 3f3100c98d3514c44b9acefab53e765f, type: 3}
+  snowflake: {fileID: 21300000, guid: 66abf4a2b8d7a2b4e8239c2555c23b9d, type: 3}
+  snowA: {fileID: 21300000, guid: e1b53114bf030bb429063c1b310a0ff2, type: 3}
+  snowB: {fileID: 21300000, guid: 2109f826183a5f94db4d2c976727676d, type: 3}
 --- !u!1 &1268093830
 GameObject:
   m_ObjectHideFlags: 0
@@ -41053,3 +41147,4 @@ SceneRoots:
   - {fileID: 1838221271}
   - {fileID: 1731245435}
   - {fileID: 203568584}
+  - {fileID: 248280027}

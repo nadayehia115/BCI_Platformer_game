@@ -7,8 +7,10 @@ using UnityEngine;
 //   1. Add Companions To Scene      - Noelle and Susie as followers, connected to the HUD switcher
 //   2. Hang Ralsei Platform On Tree - Ralsei's frame, in the HUD's first slot
 //   3. Setup Susie Box Push         - Susie pushes the box into the hole
-//   4. Plant Tree In Level Tilemaps - the tree drawn by the level's own tilemaps (it shows in the Game view)
-//   5. Fix Ralsei Hang Position     - Ralsei on the tip of that tree's branch; the duplicate prefab tree is switched off
+//   4. Setup Noelle Ice             - Noelle freezes the water into ice
+//   5. Plant Tree In Level Tilemaps - the tree drawn by the level's own tilemaps (it shows in the Game view)
+//   6. Fix Ralsei Hang Position     - Ralsei on the tip of that tree's branch (plus a hook point for every tree);
+//                                     the duplicate prefab tree is switched off
 // Before running it, put the tree where Ralsei should hang in the middle of the Scene view (he is hung on the nearest tree).
 public static class LevelCharactersSetup
 {
@@ -18,6 +20,7 @@ public static class LevelCharactersSetup
         CompanionSetup.Add();
         HookPlatformSetup.Hang();
         SusiePushSetup.Setup();
+        NoelleIceSetup.Setup();
         PlantTreeSetup.Plant();
         HookPlatformSetup.Rehang();
         Debug.Log("Level characters rebuilt. Save the scene (Ctrl+S).");
