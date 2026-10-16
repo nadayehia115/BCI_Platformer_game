@@ -175,6 +175,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ScorePoint
   value: 1
+  timeBonus: 1
   playerTag: Player
   visual: {fileID: 6848482177885267892}
   bobHeight: 0.12
