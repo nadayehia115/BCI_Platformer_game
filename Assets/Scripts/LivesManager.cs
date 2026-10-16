@@ -112,7 +112,9 @@ public class LivesManager : MonoBehaviour
         if (col == null) return false;
         var b = col.bounds;
         int mask = LayerMask.GetMask("Ground");
-        return Physics2D.BoxCast(b.center, new Vector2(b.size.x * 0.8f, b.size.y), 0f, Vector2.down, 0.1f, mask).collider != null;
+        foreach (var hit in Physics2D.BoxCastAll(b.center, new Vector2(b.size.x * 0.8f, b.size.y), 0f, Vector2.down, 0.1f, mask))
+            if (hit.collider != null && hit.collider.GetComponentInParent<SusiePusher>() == null) return true;   // Susie leaves, so standing on her is not a safe spot
+        return false;
     }
 
     // ---- getting hurt ----

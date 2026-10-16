@@ -45,6 +45,7 @@ public class SusiePusher : MonoBehaviour
 
         ShowPose();
         FitColliderToPose();
+        BuildStandingSurface();
         float lowest = 0f;
         if (sprite.sprite != null)
         {
@@ -63,12 +64,45 @@ public class SusiePusher : MonoBehaviour
         if (done) return;
 
         ShowPose();
+        IgnoreKris();
         // her front edge (the extended hands) starts right against the box, no gap
         float reach = FrontReach();
         float x = boxCollider.bounds.min.x - reach - handGap;
         float ground = GroundAt(x, boxCollider.bounds.min.y + 1.5f, boxCollider.bounds.min.y);
         body.position = new Vector2(x, ground - feetBelowPivot + footAdjust);
         transform.position = body.position;
+    }
+
+    // Kris can stand on Susie: a thin one-way slab on top of her (on the Ground layer, which is what his ground check looks at).
+    // One-way means he lands on it from above but passes through it from the side or from below, so she never blocks or shoves him.
+    // It is a separate collider from the solid box she pushes the crate with (that one ignores Kris, see IgnoreKris).
+    void BuildStandingSurface()
+    {
+        if (!(ownCollider is BoxCollider2D body2d)) return;
+        var go = new GameObject("Standing Surface");
+        go.transform.SetParent(transform, false);
+        int ground = LayerMask.NameToLayer("Ground");
+        if (ground >= 0) go.layer = ground;
+
+        const float thickness = 0.36f;                                   // local units (she is scaled 0.7)
+        float top = body2d.offset.y + body2d.size.y / 2f;
+        var slab = go.AddComponent<BoxCollider2D>();
+        slab.size = new Vector2(body2d.size.x * 0.9f, thickness);
+        slab.offset = new Vector2(body2d.offset.x, top - thickness / 2f);
+        slab.usedByEffector = true;
+        var effector = go.AddComponent<PlatformEffector2D>();
+        effector.useOneWay = true;
+        effector.useColliderMask = false;
+        effector.surfaceArc = 160f;
+    }
+
+    // Her solid box (the one that pushes the crate) and Kris do not collide: she is a kinematic body, and a kinematic body that
+    // overlaps a dynamic one shoves it out with a lot of force. Kris uses the standing surface above instead.
+    void IgnoreKris()
+    {
+        var kris = FindFirstObjectByType<PlayerController>();
+        var krisCollider = kris != null ? kris.GetComponent<Collider2D>() : null;
+        if (krisCollider != null && ownCollider != null) Physics2D.IgnoreCollision(ownCollider, krisCollider, true);
     }
 
     // ---- choosing the box and finding its hole ----
@@ -147,7 +181,7 @@ public class SusiePusher : MonoBehaviour
     // Anything solid that is not Susie, a pushable box, or the player counts as ground.
     bool IsGround(Collider2D c)
     {
-        if (c.isTrigger || c == ownCollider || c.GetComponent<PushableObject>() != null) return false;
+        if (c.isTrigger || c.attachedRigidbody == body || c.GetComponent<PushableObject>() != null) return false;
         var rb = c.attachedRigidbody;
         return rb == null || (rb.GetComponent<PlayerController>() == null && rb.GetComponent<PushableObject>() == null);
     }
@@ -220,13 +254,18 @@ public class SusiePusher : MonoBehaviour
         return b.min.x >= holeLeft - 0.1f && b.max.x <= holeRight + 0.1f;
     }
 
-    // Surface height under x: a ray straight down that ignores triggers, Susie and the boxes. `fallback` if nothing is hit.
+    static bool IsPlayer(Collider2D c) =>
+        c.attachedRigidbody != null && c.attachedRigidbody.GetComponent<PlayerController>() != null;
+
+    // Surface height under x: a ray straight down that ignores triggers, Susie, the boxes and Kris. `fallback` if nothing is hit.
+    // (Kris must not count: when he jumped over her, her ray hit his body, she lifted herself onto him, that pushed him up, and
+    // the two flew into the sky.)
     float GroundAt(float x, float fromY, float fallback)
     {
         foreach (var hit in Physics2D.RaycastAll(new Vector2(x, fromY), Vector2.down, 8f))
         {
             var c = hit.collider;
-            if (c.isTrigger || c == ownCollider || c.GetComponent<PushableObject>() != null) continue;
+            if (c.isTrigger || c.attachedRigidbody == body || c.GetComponent<PushableObject>() != null || IsPlayer(c)) continue;
             return hit.point.y;
         }
         return fallback;
