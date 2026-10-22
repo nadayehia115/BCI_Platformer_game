@@ -1,0 +1,819 @@
+fileFormatVersion: 2
+guid: ccdb2032fa93ded49aa45fda4a2885bc
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -5531779113496652199
+    second: Kris_transform_0
+  - first:
+      213: -3571007944912168532
+    second: Kris_transform_1
+  - first:
+      213: 7308560596813771695
+    second: Kris_transform_2
+  - first:
+      213: 8548440320869162787
+    second: Kris_transform_3
+  - first:
+      213: 6447052351512073352
+    second: Kris_transform_4
+  - first:
+      213: -5619196932843492013
+    second: Kris_transform_5
+  - first:
+      213: 4974430017028641040
+    second: Kris_transform_6
+  - first:
+      213: -3011414462750991483
+    second: Kris_transform_7
+  - first:
+      213: -3451845142586761976
+    second: Kris_transform_8
+  - first:
+      213: 7279489751362007149
+    second: Kris_transform_9
+  - first:
+      213: -2296000687144796504
+    second: Kris_transform_10
+  - first:
+      213: -1428959385753618499
+    second: Kris_transform_11
+  - first:
+      213: -3243054063702469074
+    second: Kris_transform_12
+  - first:
+      213: -4337482421872492845
+    second: Kris_transform_13
+  - first:
+      213: -502263679110238879
+    second: Kris_transform_14
+  - first:
+      213: 4129125026928323690
+    second: Kris_transform_15
+  - first:
+      213: 6127803396506768382
+    second: Kris_transform_16
+  - first:
+      213: 8581777092532216317
+    second: Kris_transform_17
+  - first:
+      213: 3693379150252293266
+    second: Kris_transform_18
+  - first:
+      213: 903544812245575288
+    second: Kris_transform_19
+  - first:
+      213: 7097291330716054883
+    second: Kris_transform_20
+  - first:
+      213: 7330485395436755236
+    second: Kris_transform_21
+  - first:
+      213: 7068454481215366503
+    second: Kris_transform_22
+  - first:
+      213: 1149505001197811408
+    second: Kris_transform_23
+  - first:
+      213: -4108039894725107721
+    second: Kris_transform_24
+  - first:
+      213: -6719823662758509829
+    second: Kris_transform_25
+  - first:
+      213: -8022358325110241737
+    second: Kris_transform_26
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 0
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 0
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 16
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: Kris_transform_0
+      rect:
+        serializedVersion: 2
+        x: 6
+        y: 64
+        width: 21
+        height: 38
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9565b14743c2b33b0800000000000000
+      internalID: -5531779113496652199
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Kris_transform_1
+      rect:
+        serializedVersion: 2
+        x: 40
+        y: 64
+        width: 21
+        height: 39
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ca99961b13b317ec0800000000000000
+      internalID: -3571007944912168532
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Kris_transform_2
+      rect:
+        serializedVersion: 2
+        x: 74
+        y: 64
+        width: 20
+        height: 39
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fa37080f3293d6560800000000000000
+      internalID: 7308560596813771695
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Kris_transform_3
+      rect:
+        serializedVersion: 2
+        x: 108
+        y: 64
+        width: 21
+        height: 38
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 32f58052e2922a670800000000000000
+      internalID: 8548440320869162787
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Kris_transform_4
+      rect:
+        serializedVersion: 2
+        x: 145
+        y: 64
+        width: 20
+        height: 39
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 884593ca4f7887950800000000000000
+      internalID: 6447052351512073352
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Kris_transform_5
+      rect:
+        serializedVersion: 2
+        x: 179
+        y: 64
+        width: 20
+        height: 38
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 35d26ee492a9402b0800000000000000
+      internalID: -5619196932843492013
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Kris_transform_6
+      rect:
+        serializedVersion: 2
+        x: 210
+        y: 64
+        width: 22
+        height: 38
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 011580daeb9b80540800000000000000
+      internalID: 4974430017028641040
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Kris_transform_7
+      rect:
+        serializedVersion: 2
+        x: 244
+        y: 64
+        width: 21
+        height: 38
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 58bd044508e4536d0800000000000000
+      internalID: -3011414462750991483
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Kris_transform_8
+      rect:
+        serializedVersion: 2
+        x: 278
+        y: 64
+        width: 21
+        height: 38
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 80d5578a1259810d0800000000000000
+      internalID: -3451845142586761976
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Kris_transform_9
+      rect:
+        serializedVersion: 2
+        x: 312
+        y: 64
+        width: 21
+        height: 39
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d6077084c51f50560800000000000000
+      internalID: 7279489751362007149
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Kris_transform_10
+      rect:
+        serializedVersion: 2
+        x: 347
+        y: 64
+        width: 20
+        height: 39
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8ae7eae2a87f220e0800000000000000
+      internalID: -2296000687144796504
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Kris_transform_11
+      rect:
+        serializedVersion: 2
+        x: 380
+        y: 63
+        width: 21
+        height: 39
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: db7f1b572015b2ce0800000000000000
+      internalID: -1428959385753618499
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Kris_transform_12
+      rect:
+        serializedVersion: 2
+        x: 414
+        y: 63
+        width: 21
+        height: 40
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e2690a1f28b5ef2d0800000000000000
+      internalID: -3243054063702469074
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Kris_transform_13
+      rect:
+        serializedVersion: 2
+        x: 449
+        y: 63
+        width: 20
+        height: 40
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3def9c0e7ba2ec3c0800000000000000
+      internalID: -4337482421872492845
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Kris_transform_14
+      rect:
+        serializedVersion: 2
+        x: 6
+        y: 8
+        width: 21
+        height: 39
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 16dad0f48d99709f0800000000000000
+      internalID: -502263679110238879
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Kris_transform_15
+      rect:
+        serializedVersion: 2
+        x: 40
+        y: 8
+        width: 21
+        height: 40
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a6cec3fb5599d4930800000000000000
+      internalID: 4129125026928323690
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Kris_transform_16
+      rect:
+        serializedVersion: 2
+        x: 75
+        y: 8
+        width: 20
+        height: 40
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ef3d73ef8b45a0550800000000000000
+      internalID: 6127803396506768382
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Kris_transform_17
+      rect:
+        serializedVersion: 2
+        x: 108
+        y: 7
+        width: 21
+        height: 41
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: df1a7f52cc8981770800000000000000
+      internalID: 8581777092532216317
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Kris_transform_18
+      rect:
+        serializedVersion: 2
+        x: 142
+        y: 5
+        width: 23
+        height: 41
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 29c3f9fc4c4814330800000000000000
+      internalID: 3693379150252293266
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Kris_transform_19
+      rect:
+        serializedVersion: 2
+        x: 173
+        y: 7
+        width: 26
+        height: 37
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8766b8438390a8c00800000000000000
+      internalID: 903544812245575288
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Kris_transform_20
+      rect:
+        serializedVersion: 2
+        x: 205
+        y: 2
+        width: 23
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3653acabcd4ae7260800000000000000
+      internalID: 7097291330716054883
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Kris_transform_21
+      rect:
+        serializedVersion: 2
+        x: 234
+        y: 3
+        width: 24
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 429523ae0ad1bb560800000000000000
+      internalID: 7330485395436755236
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Kris_transform_22
+      rect:
+        serializedVersion: 2
+        x: 265
+        y: 2
+        width: 23
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7652cdf76e1381260800000000000000
+      internalID: 7068454481215366503
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Kris_transform_23
+      rect:
+        serializedVersion: 2
+        x: 294
+        y: 3
+        width: 24
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0d63eef45bcd3ff00800000000000000
+      internalID: 1149505001197811408
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Kris_transform_24
+      rect:
+        serializedVersion: 2
+        x: 323
+        y: 3
+        width: 25
+        height: 31
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7ffd6c72b7f4df6c0800000000000000
+      internalID: -4108039894725107721
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Kris_transform_25
+      rect:
+        serializedVersion: 2
+        x: 358
+        y: 3
+        width: 23
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bf2c30c5bf36eb2a0800000000000000
+      internalID: -6719823662758509829
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Kris_transform_26
+      rect:
+        serializedVersion: 2
+        x: 393
+        y: 3
+        width: 21
+        height: 39
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 73608ea8b9bdaa090800000000000000
+      internalID: -8022358325110241737
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      Kris_transform_0: -5531779113496652199
+      Kris_transform_1: -3571007944912168532
+      Kris_transform_10: -2296000687144796504
+      Kris_transform_11: -1428959385753618499
+      Kris_transform_12: -3243054063702469074
+      Kris_transform_13: -4337482421872492845
+      Kris_transform_14: -502263679110238879
+      Kris_transform_15: 4129125026928323690
+      Kris_transform_16: 6127803396506768382
+      Kris_transform_17: 8581777092532216317
+      Kris_transform_18: 3693379150252293266
+      Kris_transform_19: 903544812245575288
+      Kris_transform_2: 7308560596813771695
+      Kris_transform_20: 7097291330716054883
+      Kris_transform_21: 7330485395436755236
+      Kris_transform_22: 7068454481215366503
+      Kris_transform_23: 1149505001197811408
+      Kris_transform_24: -4108039894725107721
+      Kris_transform_25: -6719823662758509829
+      Kris_transform_26: -8022358325110241737
+      Kris_transform_3: 8548440320869162787
+      Kris_transform_4: 6447052351512073352
+      Kris_transform_5: -5619196932843492013
+      Kris_transform_6: 4974430017028641040
+      Kris_transform_7: -3011414462750991483
+      Kris_transform_8: -3451845142586761976
+      Kris_transform_9: 7279489751362007149
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
