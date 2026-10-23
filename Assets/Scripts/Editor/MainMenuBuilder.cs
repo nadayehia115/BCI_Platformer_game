@@ -173,7 +173,7 @@ public static class MainMenuBuilder
         grid.childAlignment = TextAnchor.MiddleCenter;
 
         var windowSprite = Load("window.png");
-        NewCard(cards, "Kris", "Team Leader", "Runs & jumps with W/A/S/D", panelSprite, buttonSprite, windowSprite);
+        NewCard(cards, "Kris", "Team Leader", "Runs & jumps with W/A/D", panelSprite, buttonSprite, windowSprite);
         NewCard(cards, "Noelle", "Frost Magic", "Turns water into ice", panelSprite, buttonSprite, windowSprite);
         NewCard(cards, "Ralsei", "Dark Prince", "Hangs to form platforms", panelSprite, buttonSprite, windowSprite);
         NewCard(cards, "Susie", "The Muscle", "Pushes heavy barriers", panelSprite, buttonSprite, windowSprite);
@@ -192,11 +192,11 @@ public static class MainMenuBuilder
         var briefing = NewText("Briefing", frame2,
             "<b>Hi!</b>\n" +
             "We are the <b>BCI Busters</b>, and we need your help to clear the path!\n" +
-            "Team up with a buddy to beat the clock:\n" +
-            "\u2022  <b>BCI Player:</b> Focus on the flashing targets to cycle through Noelle, Ralsei, and Susie.\n" +
-            "\u2022  <b>Keyboard Player:</b> Move Kris with W / A / S / D and press SPACE to lock in their power.\n" +
-            "You can also take on the challenge alone in single-player!\n" +
-            "<b>The faster you finish, the higher your score multiplier!</b>",
+            "Reach the flag before the clock runs out:\n" +
+            "\u2022  Move Kris with A / D and jump with W.\n" +
+            "\u2022  Stop at an obstacle and press S: it awakens the power of Kris's sword, the dark fountain opens and a flashing pad appears.\n" +
+            "\u2022  Focus on the pad: the power of your focus calls upon <b>Noelle</b> for water, <b>Ralsei</b> for trees or <b>Susie</b> for boxes, to help you overcome the obstacle you are standing at.\n" +
+            "<b>The faster you finish, the higher your score!</b>",
             48, Ink, FontStyles.Normal, TextAlignmentOptions.TopLeft);
         briefing.textWrappingMode = TextWrappingModes.Normal;
         briefing.enableAutoSizing = true;
@@ -214,6 +214,7 @@ public static class MainMenuBuilder
 
         // audio controls (always visible, top right)
         var audioPanel = NewRect("AudioControls", ui);
+        audioPanel.SetSiblingIndex(1);                      // above the main menu, but below the How to Play pages: their heading draws in front of it
         audioPanel.anchorMin = audioPanel.anchorMax = audioPanel.pivot = new Vector2(1, 1);
         audioPanel.anchoredPosition = new Vector2(-40, -30);
         audioPanel.sizeDelta = new Vector2(580, 100);
@@ -507,7 +508,7 @@ public static class MainMenuBuilder
         var t = NewText("Heading", parent, text, 96, Ink, FontStyles.Bold, TextAlignmentOptions.Center);
         t.rectTransform.anchorMin = t.rectTransform.anchorMax = new Vector2(0.5f, 1f);
         t.rectTransform.pivot = new Vector2(0.5f, 1f);
-        t.rectTransform.anchoredPosition = new Vector2(0, -25);
+        t.rectTransform.anchoredPosition = new Vector2(0, -132);       // below the music controls (they end 130 from the top)
         t.rectTransform.sizeDelta = new Vector2(1400, 120);
     }
 
@@ -520,7 +521,7 @@ public static class MainMenuBuilder
         frame.raycastTarget = true;
         var r = frame.rectTransform;
         r.anchorMin = r.anchorMax = r.pivot = new Vector2(0.5f, 0.5f);
-        r.anchoredPosition = new Vector2(0, -45);
+        r.anchoredPosition = new Vector2(0, -100);                     // lower than it was: the heading above it now sits under the music controls
         r.sizeDelta = new Vector2(1600, 800);
         return r;
     }

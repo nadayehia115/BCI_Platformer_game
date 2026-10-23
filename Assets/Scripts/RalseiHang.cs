@@ -41,6 +41,31 @@ public class RalseiHang : MonoBehaviour
         transform.position = new Vector3(target.x, target.y, transform.position.z);
     }
 
+    // Is there a tree for him? x = where its branch tip is. With no hook points at all he stays where he was put (the one tree
+    // he hangs from), so that spot is the tree. See PowerTargets.
+    public bool FindWork(float krisX, bool onScreenOnly, float lookAhead, out float x)
+    {
+        x = 0f;
+        var points = FindObjectsByType<HookPoint>(FindObjectsSortMode.None);
+        float best = float.MaxValue;
+        if (points.Length == 0)
+        {
+            float px = transform.position.x;
+            if (!(onScreenOnly ? WorkRange.OnScreen(px) : PowerTargets.InZone(px, px, krisX, lookAhead))) return false;
+            x = px;
+            return true;
+        }
+        foreach (var point in points)
+        {
+            float px = point.transform.position.x;
+            bool wanted = onScreenOnly ? WorkRange.OnScreen(px) : PowerTargets.InZone(px, px, krisX, lookAhead);
+            if (!wanted || Mathf.Abs(px - krisX) >= best) continue;
+            best = Mathf.Abs(px - krisX);
+            x = px;
+        }
+        return best < float.MaxValue;
+    }
+
     void Update()
     {
         if (!nothingToHookOn) return;

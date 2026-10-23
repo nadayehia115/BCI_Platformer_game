@@ -9,7 +9,7 @@ using UnityEngine;
 using Debug = UnityEngine.Debug;
 
 // Listens for UDP messages from the Python script and drives the CharacterSwitcher and the player (via RemoteInput).
-// Messages: toggle | toggle|<seq> | select|<slot> | confirm | switch | move|<-1..1> | jump | ping | quit
+// Messages: toggle | toggle|<seq> | select|<slot> | confirm | s (fountain) | switch (t) | move|<-1..1> | jump | frequencies | ping | quit
 //   toggle|<seq> is answered with "ack|<seq>|<queueMs>" right after it is applied, so the sender can measure latency.
 //   ping is answered with "pong" so the sender knows the game is up.
 [RequireComponent(typeof(CharacterSwitcher))]
@@ -104,8 +104,13 @@ public class BciListener : MonoBehaviour
                     switcher.Confirm();
                     break;
 
-                case "switch":                       // one button for both: hide whoever is out, bring the next character in
-                    switcher.Advance();
+                case "s":                            // the Python S: play the dark fountain at the obstacle, then the pad appears
+                case "fountain":
+                    KrisForms.Request();
+                    break;
+
+                case "switch":                       // the Python T: the classification kept the focus, bring in the friend the obstacle needs
+                    switcher.AutoSelect();
                     break;
 
                 case "move":                         // move|-1, move|0, move|1: repeat it while the button is "held"
@@ -115,6 +120,12 @@ public class BciListener : MonoBehaviour
 
                 case "jump":
                     RemoteInput.RequestJump();
+                    break;
+
+                case "frequencies":                  // the flicker rates of the SSVEP pads, left to right (Ralsei, Noelle, Susie): freq|6|7.5|5
+                    var reply = new System.Text.StringBuilder("freq");
+                    foreach (float f in SsvepBoard.Frequencies) reply.Append('|').Append(f.ToString(CultureInfo.InvariantCulture));
+                    Reply(p, reply.ToString());
                     break;
 
                 case "ping":                         // lets the sender wait until the game has started listening

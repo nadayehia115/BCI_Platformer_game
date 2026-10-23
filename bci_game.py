@@ -8,7 +8,10 @@ Movement (real key state, so letting go stops the player; works whichever window
     hold D / Right arrow   run right          hold A / Left arrow   run left
     W / Space / Up arrow   jump
 One-off commands (type them in this console window):
-    T  the one switch: hides whoever is out and brings the next character in (Ralsei, Noelle, Susie, Ralsei ...)
+    S  at an obstacle (a pool, a tree, a box): the dark fountain animation plays, and then the flickering pad appears
+    T  the classification says the player kept the focus on the pad: the game brings in the friend the obstacle needs by
+       itself (water -> Noelle, a tree -> Ralsei, a box -> Susie). That uses the pad up: press S again at the next obstacle.
+       Nothing happens before S or when no such obstacle is in sight
     R  run the game: opens the published game, or presses Play in the Unity editor
     Q  close the game (stops Play mode in Unity, or closes the published game); R runs it again
     X  exit this script (also closes the game if the script opened it)
@@ -93,6 +96,8 @@ class GameLink:
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.sock.bind(("127.0.0.1", 0))
         self._ready = threading.Event()
+        self._freq_event = threading.Event()
+        self._freq = None
         self._move = 0
         self._running = True
         threading.Thread(target=self._receive, daemon=True).start()
@@ -139,9 +144,26 @@ class GameLink:
         return ok
 
     # ---- commands ----
+    def fountain(self):
+        """The "S" of the BCI flow: at an obstacle that needs a friend's power (water, a tree, a box) the game plays the dark
+        fountain animation where Kris stands, and when it is over the flickering pad appears. Nothing happens when no such
+        obstacle is in sight, while the animation plays, or while the pad is already out. Needed at EVERY obstacle."""
+        self._send("s")
+
     def switch(self):
-        """One button for both jobs: send out whoever is on screen and bring the next character in."""
+        """The "t" of the BCI: the classification (next stage) showed that the player kept the required focus. The game
+        then picks the power the nearest obstacle needs and brings that friend in: water -> Noelle, a tree -> Ralsei,
+        a box -> Susie. Only works after fountain() has played at the obstacle (the pad is out); it uses the pad up.
+        Nothing happens before that or when no such obstacle is in sight."""
         self._send("switch")
+
+    def frequencies(self, timeout=1.0):
+        """The flicker rate (Hz) of the one SSVEP pad ("activate power", in the middle of the game screen), as a list with one
+        number, e.g. [6.0] on a 60 Hz screen. The game works it out from the screen it runs on (never 8-25 Hz), or uses the
+        one chosen in the main menu SETTINGS tab. None if the game does not answer."""
+        self._freq_event.clear()
+        self._send("frequencies")
+        return self._freq if self._freq_event.wait(timeout) else None
 
     def toggle(self):
         self._send("toggle")
@@ -199,8 +221,12 @@ class GameLink:
                 data, _ = self.sock.recvfrom(1024)
             except OSError:
                 return
-            if data.decode().startswith("pong"):
+            text = data.decode()
+            if text.startswith("pong"):
                 self._ready.set()
+            elif text.startswith("freq|"):
+                self._freq = [float(x) for x in text.split("|")[1:]]
+                self._freq_event.set()
 
 
 def main():
@@ -220,10 +246,12 @@ def main():
             print("The game is not running. Press R to run it.")
         keys = KeyWatcher(link)
         print("Hold D/A (or the arrows) to run and let go to stop, W/Space to jump.")
-        print("In this window: T switch character, R run the game, Q close the game, X exit this script.")
+        print("In this window: S = dark fountain at the obstacle, then the pad appears; T = focus kept (the game brings in the friend the obstacle needs); R run the game, Q close the game, X exit this script.")
         while True:
             key = msvcrt.getwch().lower()           # one-off commands: typed in this console window
-            if key == "t":
+            if key == "s":
+                link.fountain()
+            elif key == "t":
                 link.switch()
             elif key == "r":
                 link.run_game()

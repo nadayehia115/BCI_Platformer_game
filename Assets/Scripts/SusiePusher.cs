@@ -112,18 +112,43 @@ public class SusiePusher : MonoBehaviour
     {
         var kris = FindFirstObjectByType<PlayerController>();
         float from = kris != null ? kris.transform.position.x : transform.position.x;
+        if (!PickBox(from, true, 0f, out var best, out float bestLeft, out float bestRight)) return false;
 
-        Rigidbody2D best = null;
-        float bestDistance = float.MaxValue, bestLeft = 0f, bestRight = 0f;
+        box = best;
+        boxCollider = best.GetComponent<Collider2D>();
+        holeLeft = bestLeft;
+        holeRight = bestRight;
+        return true;
+    }
+
+    // Is there a box that still needs her? x = where it is. See PowerTargets.
+    public bool FindWork(float krisX, bool onScreenOnly, float lookAhead, out float x)
+    {
+        x = 0f;
+        if (!PickBox(krisX, onScreenOnly, lookAhead, out var found, out _, out _)) return false;
+        x = found.GetComponent<Collider2D>().bounds.center.x;
+        return true;
+    }
+
+    // The nearest box that is not in a hole yet and has a hole to its right: only one the camera shows (onScreenOnly), or any up
+    // to lookAhead units in front of Kris. Changes nothing.
+    bool PickBox(float from, bool onScreenOnly, float lookAhead, out Rigidbody2D best, out float bestLeft, out float bestRight)
+    {
+        best = null;
+        bestLeft = bestRight = 0f;
+        float bestDistance = float.MaxValue;
         foreach (var pushable in FindObjectsByType<PushableObject>(FindObjectsSortMode.None))
         {
             var rb = pushable.GetComponent<Rigidbody2D>();
             var col = pushable.GetComponent<Collider2D>();
             if (rb == null || col == null || finished.Contains(rb)) continue;
-            if (!WorkRange.OnScreen(col.bounds.center.x)) continue;        // only a box the player can see
+            float boxX = col.bounds.center.x;
+            bool wanted = onScreenOnly ? WorkRange.OnScreen(boxX)           // only a box the player can see
+                                       : PowerTargets.InZone(boxX, boxX, from, lookAhead);
+            if (!wanted) continue;
             if (!FindHole(col, out float left, out float right)) continue;
 
-            float distance = Mathf.Abs(col.bounds.center.x - from);
+            float distance = Mathf.Abs(boxX - from);
             if (distance < bestDistance)
             {
                 best = rb;
@@ -132,13 +157,7 @@ public class SusiePusher : MonoBehaviour
                 bestRight = right;
             }
         }
-        if (best == null) return false;
-
-        box = best;
-        boxCollider = best.GetComponent<Collider2D>();
-        holeLeft = bestLeft;
-        holeRight = bestRight;
-        return true;
+        return best != null;
     }
 
     // The hole = the first stretch to the right of the box where there is no ground at the level the box stands on.

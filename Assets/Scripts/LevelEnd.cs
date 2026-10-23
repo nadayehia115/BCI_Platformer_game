@@ -28,6 +28,7 @@ public class LevelEnd : MonoBehaviour
     public float TimeLimit => timeLimit + Bonus;                // the limit including the bonus
     public float Remaining => Mathf.Max(0f, TimeLimit - Elapsed);
     public bool Ended { get; private set; }
+    public bool Paused { get; set; }                             // the clock stands still (the dark fountain cutscene)
     public int FinalScore { get; private set; }                  // only set once the game has ended: the time left x points per second
     public int HighScorePlace { get; private set; } = -1;        // 0 = new best score, 1 = second, 2 = third, -1 = not in the top 3
 
@@ -96,6 +97,7 @@ public class LevelEnd : MonoBehaviour
     {
         if (!Ended)
         {
+            if (Paused) return;
             Elapsed += Time.deltaTime;                   // stops by itself when the game is stopped (timeScale 0)
             if (Elapsed >= TimeLimit) EndGame(false, "Time ran out before you reached the flag.", timeRanOut: true);    // the clock hit zero: the game stops, you lose
             return;

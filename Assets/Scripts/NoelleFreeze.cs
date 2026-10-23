@@ -113,7 +113,8 @@ public class NoelleFreeze : MonoBehaviour
 
     // ---- finding the tilemaps and the pool ----
 
-    bool FindTilemaps()
+    // Just finds the two tilemaps (no side effects).
+    bool LocateTilemaps()
     {
         water = ice = null;
         foreach (var tm in FindObjectsByType<Tilemap>(FindObjectsSortMode.None))
@@ -121,7 +122,21 @@ public class NoelleFreeze : MonoBehaviour
             if (tm.name == WaterName) water = tm;
             else if (tm.name == IceName) ice = tm;
         }
-        if (water == null || ice == null)
+        return water != null && ice != null;
+    }
+
+    // Is there a pool that still needs her? x = where it is (its near edge, or Kris's x when he is above it). See PowerTargets.
+    public bool FindWork(float krisX, bool onScreenOnly, float lookAhead, out float x)
+    {
+        x = 0f;
+        if (!LocateTilemaps() || !PickPool(krisX, onScreenOnly, lookAhead, out var best, out float left, out float right)) return false;
+        x = krisX < left ? left : krisX > right ? right : krisX;
+        return true;
+    }
+
+    bool FindTilemaps()
+    {
+        if (!LocateTilemaps())
         {
             Debug.LogWarning($"NoelleFreeze needs tilemaps called {WaterName} and {IceName}.");
             return false;
@@ -201,6 +216,22 @@ public class NoelleFreeze : MonoBehaviour
         fromLeft = true;
         var kris = FindFirstObjectByType<PlayerController>();
         float krisX = kris != null ? kris.transform.position.x : transform.position.x;
+        if (!PickPool(krisX, true, 0f, out var best, out _, out _)) return false;
+
+        float centre = (water.CellToWorld(new Vector3Int(best[0].x, 0, 0)).x +
+                        water.CellToWorld(new Vector3Int(best[best.Count - 1].x + 1, 0, 0)).x) / 2f;
+        fromLeft = krisX < centre;                                             // she stands on Kris's side of the pool
+        pool = best;
+        if (!fromLeft) pool.Reverse();                                         // the ice grows away from her
+        return true;
+    }
+
+    // The nearest pool that still has water at its surface: only one the camera shows (onScreenOnly), or any up to lookAhead
+    // units in front of Kris. Changes nothing.
+    bool PickPool(float krisX, bool onScreenOnly, float lookAhead, out List<Column> best, out float bestLeft, out float bestRight)
+    {
+        best = null;
+        bestLeft = bestRight = 0f;
 
         // surface of every column: the highest water or ice tile; frozen when that tile is ice
         var surface = new SortedDictionary<int, Column>();
@@ -224,29 +255,25 @@ public class NoelleFreeze : MonoBehaviour
             last = kv.Key;
         }
 
-        List<Column> best = null;
         float bestDistance = float.MaxValue;
         foreach (var p in pools)
         {
             if (!p.Exists(c => !c.frozen)) continue;                           // already ice all the way
             float left = water.CellToWorld(new Vector3Int(p[0].x, 0, 0)).x;
             float right = water.CellToWorld(new Vector3Int(p[p.Count - 1].x + 1, 0, 0)).x;
-            if (!WorkRange.OverlapsScreen(left, right)) continue;              // only a pool the player can see
+            bool wanted = onScreenOnly ? WorkRange.OverlapsScreen(left, right)  // only a pool the player can see
+                                       : PowerTargets.InZone(left, right, krisX, lookAhead);
+            if (!wanted) continue;
             float distance = krisX < left ? left - krisX : krisX > right ? krisX - right : 0f;
             if (distance < bestDistance)
             {
                 bestDistance = distance;
                 best = p;
+                bestLeft = left;
+                bestRight = right;
             }
         }
-        if (best == null) return false;
-
-        float centre = (water.CellToWorld(new Vector3Int(best[0].x, 0, 0)).x +
-                        water.CellToWorld(new Vector3Int(best[best.Count - 1].x + 1, 0, 0)).x) / 2f;
-        fromLeft = krisX < centre;                                             // she stands on Kris's side of the pool
-        pool = best;
-        if (!fromLeft) pool.Reverse();                                         // the ice grows away from her
-        return true;
+        return best != null;
     }
 
     static void Raise(SortedDictionary<int, Column> surface, int x, int y, bool isIce)
