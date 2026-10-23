@@ -18,11 +18,14 @@ public static class MainMenuBuilder
     const string GameScenePath = "Assets/Scenes/GameScene.unity";
     const string SpriteDir = "Assets/Menu/Sprites/";
     const string AudioDir = "Assets/Menu/Audio/";
+    const string FontFile = "Assets/Menu/Fonts/LilitaOne-Regular.ttf";
+    const string FontAssetPath = "Assets/Menu/Fonts/LilitaOne SDF.asset";
     const string CharacterDir = "Assets/Menu/Characters";
     const string SheetPath = "Assets/tiles/tileArt/tilemap_packed.png";
 
     const float Tile = 72f;                                   // 18px tile drawn at 4x
     static readonly Vector2 ArtSize = new Vector2(27 * Tile, 15 * Tile);
+    static TMP_FontAsset uiFont;                                       // Lilita One, set when the scene is built
     static readonly Color Ink = Color.black;                            // all text is pure black for readability
     static readonly Color Sky = new Color32(225, 246, 244, 255);
 
@@ -44,6 +47,7 @@ public static class MainMenuBuilder
         }
 
         AssetDatabase.Refresh();
+        uiFont = EnsureFont();
         ImportSprite("menu_background.png", Vector4.zero);
         ImportSprite("button.png", new Vector4(8, 8, 8, 8));
         ImportSprite("panel.png", new Vector4(8, 8, 8, 8));
@@ -212,9 +216,9 @@ public static class MainMenuBuilder
         var audioPanel = NewRect("AudioControls", ui);
         audioPanel.anchorMin = audioPanel.anchorMax = audioPanel.pivot = new Vector2(1, 1);
         audioPanel.anchoredPosition = new Vector2(-40, -30);
-        audioPanel.sizeDelta = new Vector2(840, 110);
+        audioPanel.sizeDelta = new Vector2(580, 100);
         var hlg = audioPanel.gameObject.AddComponent<HorizontalLayoutGroup>();
-        hlg.spacing = 28;
+        hlg.spacing = 20;
         hlg.childAlignment = TextAnchor.MiddleRight;
         hlg.childControlWidth = hlg.childControlHeight = false;
         hlg.childForceExpandWidth = hlg.childForceExpandHeight = false;
@@ -222,11 +226,11 @@ public static class MainMenuBuilder
         var musicBox = NewSliderBox(audioPanel, "MusicBox", "MUSIC", Load("slider_track.png"), Load("slider_fill.png"), Sheet(151), out var musicSlider);
         var sfxBox = NewSliderBox(audioPanel, "SfxBox", "EFFECTS", Load("slider_track.png"), Load("slider_fill.png"), Sheet(151), out var sfxSlider);
 
-        var muteBtn = NewButton(audioPanel, "MuteButton", "", buttonSprite, new Vector2(100, 100), 10, false);
+        var muteBtn = NewButton(audioPanel, "MuteButton", "", buttonSprite, new Vector2(84, 84), 10, false);
         var icon = NewImage("Icon", muteBtn.transform, Load("speaker_on.png"));
         icon.preserveAspect = true;
         icon.rectTransform.anchorMin = icon.rectTransform.anchorMax = icon.rectTransform.pivot = new Vector2(0.5f, 0.5f);
-        icon.rectTransform.sizeDelta = new Vector2(64, 64);
+        icon.rectTransform.sizeDelta = new Vector2(52, 52);
         muteBtn.transform.SetAsFirstSibling();
 
         // ---- controller + wiring ------------------------------------------------------------
@@ -286,6 +290,54 @@ public static class MainMenuBuilder
         return false;
     }
 
+    // Builds (once) a TextMesh Pro font asset from the Lilita One .ttf using TMP's own "Create Font Asset" command.
+    // Anything the font lacks falls back to the default font.
+    static TMP_FontAsset EnsureFont()
+    {
+        var existing = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(FontAssetPath);
+        if (existing != null && FontAssetIsHealthy(existing)) return existing;
+        if (File.Exists(FontAssetPath)) AssetDatabase.DeleteAsset(FontAssetPath);     // a half-built leftover
+
+        var font = AssetDatabase.LoadAssetAtPath<Font>(FontFile);
+        if (font == null)
+        {
+            Debug.LogWarning("Font not found at " + FontFile + "; using the default font.");
+            return null;
+        }
+
+        const string generated = "Assets/Menu/Fonts/LilitaOne-Regular SDF.asset";    // name TMP gives it
+        if (File.Exists(generated)) AssetDatabase.DeleteAsset(generated);
+        Selection.activeObject = font;
+        EditorApplication.ExecuteMenuItem("Assets/Create/TextMeshPro/Font Asset/SDF");
+        AssetDatabase.SaveAssets();
+        AssetDatabase.Refresh();
+
+        var fa = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(generated);
+        if (fa == null)
+        {
+            Debug.LogWarning("Could not create the Lilita One font asset; using the default font.");
+            return null;
+        }
+        string err = AssetDatabase.MoveAsset(generated, FontAssetPath);
+        if (!string.IsNullOrEmpty(err)) Debug.LogWarning(err);
+        fa = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(File.Exists(FontAssetPath) ? FontAssetPath : generated);
+
+        // pre-generate the characters the menu uses so the atlas is saved with the asset
+        fa.TryAddCharacters(" !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\u2022");
+        if (TMP_Settings.defaultFontAsset != null && !fa.fallbackFontAssetTable.Contains(TMP_Settings.defaultFontAsset))
+            fa.fallbackFontAssetTable.Add(TMP_Settings.defaultFontAsset);
+
+        EditorUtility.SetDirty(fa);
+        AssetDatabase.SaveAssets();
+        return fa;
+    }
+
+    static bool FontAssetIsHealthy(TMP_FontAsset fa)
+    {
+        try { return fa.atlasTextures != null && fa.atlasTextures.Length > 0 && fa.atlasTextures[0] != null && fa.material != null; }
+        catch { return false; }
+    }
+
     static void ImportSprite(string file, Vector4 border) => ImportAt(SpriteDir + file, border);
 
     static void ImportAt(string path, Vector4 border)
@@ -340,10 +392,11 @@ public static class MainMenuBuilder
     {
         var rt = NewRect(name, parent);
         var t = rt.gameObject.AddComponent<TextMeshProUGUI>();
+        if (uiFont != null) t.font = uiFont;
         t.text = text;
         t.fontSize = size;
         t.color = color;
-        t.fontStyle = style;
+        t.fontStyle = style & ~FontStyles.Bold;
         t.alignment = align;
         t.raycastTarget = false;
         t.textWrappingMode = TextWrappingModes.NoWrap;
@@ -383,7 +436,7 @@ public static class MainMenuBuilder
     static RectTransform NewSliderBox(Transform parent, string name, string label, Sprite track, Sprite fill, Sprite handle, out Slider slider)
     {
         var box = NewRect(name, parent);
-        box.sizeDelta = new Vector2(300, 100);
+        box.sizeDelta = new Vector2(220, 100);
 
         var text = NewText("Label", box, label, 30, Ink, FontStyles.Bold, TextAlignmentOptions.Left);
         text.rectTransform.anchorMin = new Vector2(0, 1);

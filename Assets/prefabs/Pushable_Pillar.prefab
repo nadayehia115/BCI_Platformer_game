@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 1955152970601369126}
   - component: {fileID: 4700515691892909123}
   - component: {fileID: 2197250412860868818}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Pushable_Pillar
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -130,7 +130,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8662080241946040431}
   - component: {fileID: 7873519285496482100}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Grid
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -176,7 +176,7 @@ GameObject:
   - component: {fileID: 7611235168852493094}
   - component: {fileID: 3223776550864256961}
   - component: {fileID: 4062941289954534218}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: pushable_box
   m_TagString: Untagged
   m_Icon: {fileID: 0}

@@ -7,6 +7,8 @@ public class ScorePoint : MonoBehaviour
 {
     [Header("Score")]
     [SerializeField] int value = 1;
+    [Tooltip("Seconds added to the level clock when this gem is collected.")]
+    [SerializeField] float timeBonus = 0.1f;
 
     [Header("Who can collect it")]
     [Tooltip("Tag of the player object. A Rigidbody2D that also has a PlayerController counts even if untagged.")]
@@ -53,6 +55,7 @@ public class ScorePoint : MonoBehaviour
 
         foreach (var c in GetComponents<Collider2D>()) c.enabled = false;
         ScoreManager.Add(value);
+        if (LevelEnd.Instance != null) LevelEnd.Instance.AddTime(timeBonus);
         if (collectSound != null) AudioSource.PlayClipAtPoint(collectSound, transform.position, collectVolume);
         StartCoroutine(PopAndDisappear());
     }
