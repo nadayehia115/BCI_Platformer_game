@@ -120,8 +120,34 @@ public class KrisForms : MonoBehaviour
             Debug.Log("S: no obstacle in sight needs a friend's power.");
             return;
         }
+        if (!kris.IsGrounded)
+        {
+            // pressed in the air (a jump, a fall): the fountain starts the moment he lands, if that is soon
+            waitForGround = Time.time + MaxWaitForGround;
+            Debug.Log("S: the fountain starts when Kris is on the ground.");
+            return;
+        }
+        waitForGround = 0f;
+        Begin();
+    }
+
+    void Begin()
+    {
         if (art == null || !art.Complete) { Arm(); return; }
         StartCoroutine(Fountain());
+    }
+
+    // S was pressed while Kris was in the air: start as soon as he stands on the ground (give up after a moment: he may be falling away).
+    const float MaxWaitForGround = 3f;
+    float waitForGround;
+
+    void Update()
+    {
+        if (waitForGround <= 0f) return;
+        if (cutscene || PowersUnlocked || kris == null || Time.time > waitForGround) { waitForGround = 0f; return; }
+        if (!kris.IsGrounded) return;
+        waitForGround = 0f;
+        if (PowerTargets.Nearest(true, 0f, out _)) Begin();                                   // still at an obstacle after the landing
     }
 
     // ---- the dark fountain ----

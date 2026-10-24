@@ -105,6 +105,9 @@ public class PlayerController : MonoBehaviour
             spriteRenderer.flipX = true;
     }
 
+    // True while Kris stands (or walks) on the ground; false in the air, also on the way up of a jump (read by KrisForms).
+    public bool IsGrounded => GetIsGrounded();
+
     private bool GetIsGrounded()
     {
         // Not grounded while moving upward (blocks a second jump right after takeoff)
