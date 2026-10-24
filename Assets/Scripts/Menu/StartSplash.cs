@@ -29,9 +29,9 @@ public class StartSplash : MonoBehaviour
     const string OriginalGame = "DELTARUNE";
     const string OriginalCreator = "Toby Fox";
 
-    const float FadeIn = 0.7f, Hold = 4.5f, FadeOut = 0.7f, SkipFade = 0.2f, Reveal = 0.3f;
-    const float NoSkipBefore = 0.3f;                                   // a key pressed even earlier still counts, once this time is over
-    const float LogoHeight = 640f, LogoFadeHeight = 180f;              // in canvas units (the canvas is 1920 x 1080)
+    const float FadeIn = 0.7f, Hold = 11f, FadeOut = 0.7f, SkipFade = 0.2f, Reveal = 0.3f;     // long enough to read all the lines
+    const float NoSkipBefore = 0.6f;                                   // a key (or click) before this time is ignored: it is the one that started the game
+    const float LogoHeight = 600f;                                     // in canvas units (the canvas is 1920 x 1080)
 
     static readonly Color Back = new Color32(60, 71, 83, 255);         // the picture's own background colour, so its edges disappear
     static readonly Color TitleColour = new Color(0.62f, 0.95f, 1f);
@@ -91,22 +91,13 @@ public class StartSplash : MonoBehaviour
             var image = picture.gameObject.AddComponent<Image>();
             image.sprite = logo;
             image.raycastTarget = false;
-
-            // the picture ends in the middle of the cape: fade its lower edge into the background
-            var fade = NewRect("Logo Fade", picture);
-            fade.anchorMin = fade.anchorMax = fade.pivot = new Vector2(0.5f, 0f);
-            fade.sizeDelta = new Vector2(picture.sizeDelta.x + 4f, LogoFadeHeight);
-            fade.anchoredPosition = new Vector2(0f, -1f);
-            var fadeImage = fade.gameObject.AddComponent<Image>();
-            fadeImage.sprite = MakeFade();
-            fadeImage.raycastTarget = false;
         }
 
-        NewText("Game Name", GameName, 120f, -735f, 1700f, TitleColour, FontStyles.Bold);
-        NewText("Team", "A game by " + Team, 46f, -835f, 1700f, TeamColour);
-        NewText("Original Game", "Based on " + OriginalGame + ", created by " + OriginalCreator, 40f, -888f, 1700f, OriginalColour);
-        NewText("Copyright 1", OriginalGame + " and its characters are © " + OriginalCreator + ".", 30f, -950f, 1700f, SmallColour);
-        NewText("Copyright 2", "This is an unofficial fan project and is not affiliated with " + OriginalCreator + ".", 30f, -990f, 1700f, SmallColour);
+        NewText("Game Name", GameName, 100f, -765f, 1700f, TitleColour, FontStyles.Bold);
+        NewText("Team", "A game by " + Team, 38f, -842f, 1700f, TeamColour);
+        NewText("Original Game", "Based on " + OriginalGame + ", created by " + OriginalCreator, 34f, -886f, 1700f, OriginalColour);
+        NewText("Copyright 1", OriginalGame + ", its characters and its music are © " + OriginalCreator + ".", 26f, -944f, 1700f, SmallColour);
+        NewText("Copyright 2", "This is an unofficial fan project and is not affiliated with " + OriginalCreator + ".", 26f, -978f, 1700f, SmallColour);
 
         hint = NewText("Hint", "press any key", 26f, 0f, 600f, SmallColour);
         var hintRect = hint.rectTransform;
@@ -125,20 +116,6 @@ public class StartSplash : MonoBehaviour
         anyButton = InputSystem.onAnyButtonPress.CallOnce(_ => pressed = true);       // any key, mouse button, gamepad button, touch
     }
 
-    // 1 x 64 pixels, opaque at the bottom, see-through at the top, in the colour of the background
-    static Sprite MakeFade()
-    {
-        const int h = 64;
-        var tex = new Texture2D(1, h, TextureFormat.RGBA32, false) { wrapMode = TextureWrapMode.Clamp, filterMode = FilterMode.Bilinear };
-        for (int y = 0; y < h; y++)
-        {
-            float t = y / (h - 1f);                                    // 0 at the bottom row ... 1 at the top row
-            tex.SetPixel(0, y, new Color(Back.r, Back.g, Back.b, Mathf.SmoothStep(1f, 0f, t)));
-        }
-        tex.Apply();
-        return Sprite.Create(tex, new Rect(0f, 0f, 1f, h), new Vector2(0.5f, 0.5f), 100f);
-    }
-
     // ---- time ----
 
     void Update()
@@ -146,6 +123,7 @@ public class StartSplash : MonoBehaviour
         age += Mathf.Min(Time.unscaledDeltaTime, 0.1f);                 // a hitch while the menu loads must not use up the time
 
         float dark = 1f - Mathf.Clamp01(age / FadeIn);                  // how black the curtain is
+        if (age < NoSkipBefore) pressed = false;
         bool skip = age >= NoSkipBefore && (pressed || SkipPressed());
         if (leaveAt < 0f && (skip || age >= FadeIn + Hold))
         {

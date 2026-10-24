@@ -24,8 +24,12 @@ public class ScorePoint : MonoBehaviour
     [Header("Pickup")]
     [SerializeField] float popTime = 0.18f;
     [SerializeField] float popScale = 1.6f;
+    [Tooltip("Leave empty to use the jingle in Resources/Audio/score_collect (tools/generate_score_sound.py makes it).")]
     [SerializeField] AudioClip collectSound;
     [Range(0f, 1f)] [SerializeField] float collectVolume = 0.8f;
+
+    const string DefaultSoundResource = "Audio/score_collect";
+    static AudioClip defaultSound;
 
     Vector3 visualStart;
     Vector3 visualScale;
@@ -56,8 +60,32 @@ public class ScorePoint : MonoBehaviour
         foreach (var c in GetComponents<Collider2D>()) c.enabled = false;
         ScoreManager.Add(value);
         if (LevelEnd.Instance != null) LevelEnd.Instance.AddTime(timeBonus);
-        if (collectSound != null) AudioSource.PlayClipAtPoint(collectSound, transform.position, collectVolume);
+        PlayCollectSound();
         StartCoroutine(PopAndDisappear());
+    }
+
+    // The jingle follows the sound effects volume and the mute of the menu settings (AudioManager). When the game is started from
+    // GameScene directly there is no AudioManager: a plain 2D sound is played instead.
+    void PlayCollectSound()
+    {
+        var clip = collectSound;
+        if (clip == null)
+        {
+            if (defaultSound == null) defaultSound = Resources.Load<AudioClip>(DefaultSoundResource);
+            clip = defaultSound;
+        }
+        if (clip == null) return;
+
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.PlaySfx(clip);
+            return;
+        }
+        var go = new GameObject("Gem sound");                                    // the gem itself is gone a moment later
+        var source = go.AddComponent<AudioSource>();
+        source.spatialBlend = 0f;
+        source.PlayOneShot(clip, collectVolume);
+        Destroy(go, clip.length + 0.1f);
     }
 
     bool IsPlayer(Collider2D other)

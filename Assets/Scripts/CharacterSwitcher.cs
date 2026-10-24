@@ -69,6 +69,7 @@ public class CharacterSwitcher : MonoBehaviour
     // sight nothing happens. Returns whether a friend was brought in (or is already at work).
     public bool AutoSelect()
     {
+        if (PauseMenu.IsPaused) return false;
         if (real != null) return real.AutoSelect();
         if (!KrisForms.PowersUnlocked)
         {

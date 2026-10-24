@@ -84,7 +84,8 @@ for k in range(32):                         # kick on beats, hat on offbeats
     p2 = p + int(step * SR)
     m = int(0.04 * SR)
     drum[p2:p2 + m] += 0.07 * rng.uniform(-1, 1, m) * np.linspace(1, 0, m)
-write("menu_music.wav", lead + bass + drum)
+# the menu music is now a real track (Assets/Menu/Audio/menu_music.mp3), so the placeholder loop is not written any more
+# write("menu_music.wav", lead + bass + drum)
 
 # ---- UI sounds -------------------------------------------------------------------------
 n = int(0.07 * SR)

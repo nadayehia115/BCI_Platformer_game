@@ -94,7 +94,7 @@ public static class MainMenuBuilder
         var audioSo = new SerializedObject(audioGo.GetComponent<AudioManager>());
         audioSo.FindProperty("musicSource").objectReferenceValue = music;
         audioSo.FindProperty("sfxSource").objectReferenceValue = sfx;
-        audioSo.FindProperty("menuMusic").objectReferenceValue = AssetDatabase.LoadAssetAtPath<AudioClip>(AudioDir + "menu_music.wav");
+        audioSo.FindProperty("menuMusic").objectReferenceValue = AssetDatabase.LoadAssetAtPath<AudioClip>(AudioDir + "menu_music.mp3");
         audioSo.FindProperty("hoverClip").objectReferenceValue = AssetDatabase.LoadAssetAtPath<AudioClip>(AudioDir + "ui_hover.wav");
         audioSo.FindProperty("clickClip").objectReferenceValue = AssetDatabase.LoadAssetAtPath<AudioClip>(AudioDir + "ui_click.wav");
         audioSo.FindProperty("backClip").objectReferenceValue = AssetDatabase.LoadAssetAtPath<AudioClip>(AudioDir + "ui_back.wav");

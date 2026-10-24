@@ -25,6 +25,8 @@ public class AudioManager : MonoBehaviour
     [Header("Behaviour")]
     [Tooltip("Music stops when a scene other than this one loads (leave blank to keep playing everywhere).")]
     [SerializeField] string menuSceneName = "MainMenu";
+    [Tooltip("The song of the game scenes. Empty = Resources/Audio/game_music (the menu song is not used in the game).")]
+    [SerializeField] AudioClip gameMusic;
 
     public event Action Changed;
 
@@ -66,11 +68,37 @@ public class AudioManager : MonoBehaviour
         if (Instance == this) SceneManager.activeSceneChanged -= OnSceneChanged;
     }
 
+    // The menu has its song, every other scene (the game) has the game song. A song that is already playing is not restarted (so
+    // "play again", which loads the game scene again, keeps it going).
     void OnSceneChanged(Scene from, Scene to)
     {
         if (musicSource == null || string.IsNullOrEmpty(menuSceneName)) return;
-        if (to.name != menuSceneName) musicSource.Stop();
-        else if (!musicSource.isPlaying && menuMusic != null) musicSource.Play();
+        if (to.name == menuSceneName) PlayMusic(menuMusic);
+        else
+        {
+            if (gameMusic == null) gameMusic = Resources.Load<AudioClip>("Audio/game_music");
+            PlayMusic(gameMusic);
+        }
+    }
+
+    void PlayMusic(AudioClip clip)
+    {
+        if (clip == null) { musicSource.Stop(); return; }
+        if (musicSource.clip == clip && musicSource.isPlaying) return;
+        musicSource.clip = clip;
+        musicSource.loop = true;
+        musicSource.Play();
+    }
+
+    // The music waits while a long sound effect plays (the dark fountain) and goes on from the same place afterwards.
+    public void PauseMusic()
+    {
+        if (musicSource != null) musicSource.Pause();
+    }
+
+    public void ResumeMusic()
+    {
+        if (musicSource != null) musicSource.UnPause();
     }
 
     public void SetMusicVolume(float value)

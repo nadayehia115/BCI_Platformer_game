@@ -29,6 +29,7 @@ public class KrisForms : MonoBehaviour
     // it is already playing, while the pad is already out, or when no obstacle needs a friend's power on the screen.
     public static void Request()
     {
+        if (PauseMenu.IsPaused) return;
         if (Instance != null) Instance.RequestFountain();
     }
 
@@ -152,9 +153,41 @@ public class KrisForms : MonoBehaviour
 
     // ---- the dark fountain ----
 
+    // The sound of the dark fountain (Resources/Audio/dark_fountain), about 11 s: it starts with the cutscene and fades out at its end.
+    // It follows the sound effects volume and the mute of the menu settings (AudioManager); when GameScene is started directly there
+    // is no AudioManager and a plain 2D sound is played.
+    const string FountainSoundResource = "Audio/dark_fountain";
+    static AudioClip fountainSound;
+
+    // The game music waits while the fountain sound plays and goes on afterwards (it counts game time, so a pause waits too).
+    void PlayFountainSound()
+    {
+        if (fountainSound == null) fountainSound = Resources.Load<AudioClip>(FountainSoundResource);
+        if (fountainSound == null) return;
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.PlaySfx(fountainSound);
+            AudioManager.Instance.PauseMusic();
+            StartCoroutine(ResumeMusicAfter(fountainSound.length));
+            return;
+        }
+        var go = new GameObject("Fountain sound");
+        var source = go.AddComponent<AudioSource>();
+        source.spatialBlend = 0f;
+        source.PlayOneShot(fountainSound, 0.8f);
+        Destroy(go, fountainSound.length + 0.2f);
+    }
+
+    IEnumerator ResumeMusicAfter(float seconds)
+    {
+        yield return new WaitForSeconds(seconds);
+        if (AudioManager.Instance != null) AudioManager.Instance.ResumeMusic();
+    }
+
     IEnumerator Fountain()
     {
         cutscene = true;
+        PlayFountainSound();
         dissipate = false;                                                         // (it may still be set from the last time)
         smokeRunning = false;
         sparkling = false;
