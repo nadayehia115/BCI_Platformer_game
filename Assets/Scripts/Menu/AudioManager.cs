@@ -73,7 +73,10 @@ public class AudioManager : MonoBehaviour
     void OnSceneChanged(Scene from, Scene to)
     {
         if (musicSource == null || string.IsNullOrEmpty(menuSceneName)) return;
-        if (to.name == menuSceneName) PlayMusic(menuMusic);
+        if (to.name == BciFlow.TrainingScene || to.name == BciFlow.SessionScene)
+            musicSource.Stop();                                              // no music while the EEG is being recorded
+        else if (to.name == menuSceneName || to.name == BciFlow.ContrastScene || to.name == BciFlow.HeadsetScene || to.name == BciFlow.LoadingScene)
+            PlayMusic(menuMusic);
         else
         {
             if (gameMusic == null) gameMusic = Resources.Load<AudioClip>("Audio/game_music");

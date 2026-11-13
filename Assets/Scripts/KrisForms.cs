@@ -36,7 +36,11 @@ public class KrisForms : MonoBehaviour
     }
 
     // A power was activated: the pad is used up.
-    public static void Disarm() => PowersUnlocked = false;
+    public static void Disarm()
+    {
+        PowersUnlocked = false;
+        BciLink.PadOff();                                          // the live classifier stops listening for focus
+    }
     public bool DarkWorld { get; private set; }
 
     // The smoke covers the whole screen and the pad is out on it: the game waits for T. Lift() takes the smoke away again and
@@ -372,6 +376,7 @@ public class KrisForms : MonoBehaviour
     {
         DarkWorld = true;
         PowersUnlocked = true;
+        BciLink.PadOn();                                           // the live classifier starts listening for focus
         if (showHud) StartCoroutine(FadeHud(1f, 0.6f));
         SsvepBoard.Create(switcher);
     }

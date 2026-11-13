@@ -108,3 +108,8 @@ InitTestScene*.unity*
 # Unity scene recovery backups
 /Assets/_Recovery/
 /Assets/_Recovery.meta
+
+# Python bytecode (the BCI scripts live in Assets/StreamingAssets/Python)
+__pycache__/
+*.pyc
+Assets/StreamingAssets/Python/__pycache__.meta

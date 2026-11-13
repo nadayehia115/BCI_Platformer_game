@@ -49,9 +49,10 @@ public class CharacterSwitcher : MonoBehaviour
         var kb = Keyboard.current;
         if (kb == null) return;
 
-        // The same keys as in Python: S starts the dark fountain at the obstacle (then the pad appears), T = the classification says
-        // the player kept the focus on the pad: the friend the obstacle needs is brought in by himself.
-        if (kb.sKey.wasPressedThisFrame) KrisForms.Request();
+        // A = superpower: it starts the dark fountain at the obstacle (then the pad appears). T = the classification says the player
+        // kept the focus on the pad (the placeholder of the live classifier's UDP "switch"): the friend the obstacle needs comes in.
+        // (S is "move down" now, see PlayerController.)
+        if (kb.aKey.wasPressedThisFrame) KrisForms.Request();
         if (kb.tKey.wasPressedThisFrame) AutoSelect();
     }
 

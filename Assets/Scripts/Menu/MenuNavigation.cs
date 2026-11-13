@@ -45,6 +45,7 @@ public class MenuNavigation : MonoBehaviour
     public void Play()
     {
         if (busy) return;
+        if (BciProfileManager.TryOpen()) return;                 // the BCI flow: a popup asks who plays (BciSettings.SkipBciFlow = off)
         StartCoroutine(PlayRoutine());
     }
 

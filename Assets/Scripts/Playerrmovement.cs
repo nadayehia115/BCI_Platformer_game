@@ -19,6 +19,10 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private Collider2D col;
 
     private float horizontalInput;
+    private bool moveDown;
+    [Header("Move down (S)")]
+    [Tooltip("In the air, S pulls Kris down at least this fast (units per second): a fast fall onto the ground or the pool.")]
+    [SerializeField] private float moveDownSpeed = 9f;
     private float lastGroundedTime;
 
     private void Start()
@@ -59,8 +63,11 @@ public class PlayerController : MonoBehaviour
     {
         // Read raw input in Update
         // Keyboard, or the Python script's "move" commands when it is sending them (see RemoteInput)
+        // D / Right arrow = right, Left arrow = left (A is the superpower key now), W / Up / Space = jump, S = down.
         float remote = RemoteInput.Horizontal;
-        horizontalInput = remote != 0f ? remote : Input.GetAxisRaw("Horizontal");
+        float keyboard = (Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow) ? 1f : 0f) - (Input.GetKey(KeyCode.LeftArrow) ? 1f : 0f);
+        horizontalInput = remote != 0f ? remote : keyboard;
+        moveDown = Input.GetKey(KeyCode.S);
 
         // Handle Visual Flip
         FlipCharacter();
@@ -70,7 +77,7 @@ public class PlayerController : MonoBehaviour
         if (isGrounded) lastGroundedTime = Time.time;
 
         // Handle Jump (only when standing on the ground)
-        if (isGrounded && (Input.GetKeyDown(KeyCode.W) || RemoteInput.ConsumeJump()))
+        if (isGrounded && (Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow) || Input.GetKeyDown(KeyCode.Space) || RemoteInput.ConsumeJump()))
         {
             Jump();
             lastGroundedTime = -100f; // leave the ground immediately for the animation
@@ -92,7 +99,9 @@ public class PlayerController : MonoBehaviour
     private void FixedUpdate()
     {
         // Apply physics velocity strictly inside FixedUpdate
-        rigidBody.linearVelocity = new Vector2(horizontalInput * speed, rigidBody.linearVelocity.y);
+        float vy = rigidBody.linearVelocity.y;
+        if (moveDown && vy > -moveDownSpeed && !GetIsGrounded()) vy = -moveDownSpeed;      // S: move down
+        rigidBody.linearVelocity = new Vector2(horizontalInput * speed, vy);
     }
 
     private void FlipCharacter()

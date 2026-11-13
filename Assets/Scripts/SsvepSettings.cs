@@ -29,13 +29,30 @@ public static class SsvepSettings
 
     public static float PadCm
     {
-        get => Mathf.Clamp(PlayerPrefs.GetFloat(SizeKey, DefaultPadCm), MinPadCm, MaxPadCm);
+        get => profilePad ? profilePadCm : Mathf.Clamp(PlayerPrefs.GetFloat(SizeKey, DefaultPadCm), MinPadCm, MaxPadCm);
         set
         {
             PlayerPrefs.SetFloat(SizeKey, Mathf.Clamp(value, MinPadCm, MaxPadCm));
             PlayerPrefs.Save();
         }
     }
+
+    // ---- the profile of the BCI flow (BciProfile): its frequency and pad size replace the automatic / chosen ones ----
+
+    static bool profilePad;
+    static float profilePadCm;
+    static Pad profilePlan;
+
+    // The pad of this player's profile: the frequency worked out for the screen at sign-in, the frames per half cycle that make it,
+    // and the pad diameter (taken as centimetres).
+    public static void SetProfile(float frequency, int halfCycleFrames, float padCm)
+    {
+        profilePlan = new Pad { frequency = frequency, halfCycleFrames = Mathf.Max(1, halfCycleFrames) };
+        profilePadCm = Mathf.Max(0.5f, padCm);
+        profilePad = true;
+    }
+
+    public static void ClearProfile() => profilePad = false;
 
     // Pixels per inch of the screen, as the operating system says (96 if it says nothing).
     public static float Dpi => Screen.dpi > 20f ? Screen.dpi : 96f;
@@ -104,7 +121,7 @@ public static class SsvepSettings
     }
 
     // Lower is better: the middle of 5-8 Hz first, then 3-5 Hz, then above 25 Hz, then anything slower.
-    static float Score(float f)
+    public static float Score(float f)
     {
         if (f >= 5f && f < ForbiddenLow) return Mathf.Abs(f - 6.5f);
         if (f >= 3f && f < 5f) return 10f + (5f - f);
@@ -167,6 +184,12 @@ public static class SsvepSettings
     // The pads for this screen: the hand-chosen frequencies (snapped to what the screen can show) or the automatic ones.
     public static Pad[] Plan(int count)
     {
+        if (profilePad)
+        {
+            var same = new Pad[count];
+            for (int i = 0; i < count; i++) same[i] = profilePlan;
+            return same;
+        }
         float refresh = RefreshForPlanning;
         var auto = Auto(refresh, count);
         if (!Manual) return auto;
