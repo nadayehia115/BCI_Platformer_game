@@ -67,12 +67,11 @@ public class PauseMenu : MonoBehaviour
         panel = overlay.gameObject;
         var dim = NewImage("Dim", overlay, new Vector2(4000f, 3000f), new Color(0f, 0f, 0.05f, 0.7f));
         dim.raycastTarget = true;
-        var panelFrame = NewImage("Panel frame", overlay, new Vector2(1000f, 760f), Color.black);
-        var back = NewImage("Panel", panelFrame.transform, new Vector2(980f, 740f), Cream);
-        NewLabel("Title", back.transform, "PAUSED", 150f, new Vector2(0f, 235f), new Vector2(900f, 190f));
-        resumeFace = NewButton("RESUME", back.transform, new Vector2(0f, 50f));
-        exitFace = NewButton("EXIT", back.transform, new Vector2(0f, -110f));
-        NewLabel("Hint", back.transform, "Esc: resume      M: main menu", 40f, new Vector2(0f, -265f), new Vector2(900f, 60f));
+        var panelFrame = NewImage("Panel frame", overlay, new Vector2(1000f, 560f), Color.black);
+        var back = NewImage("Panel", panelFrame.transform, new Vector2(980f, 540f), Cream);
+        NewLabel("Title", back.transform, "PAUSED", 150f, new Vector2(0f, 160f), new Vector2(900f, 190f));
+        resumeFace = NewButton("RESUME", back.transform, new Vector2(0f, 10f));
+        exitFace = NewButton("EXIT", back.transform, new Vector2(0f, -150f));           // (Esc / P / Enter resume, M exits: no text about it)
         panel.SetActive(false);
     }
 

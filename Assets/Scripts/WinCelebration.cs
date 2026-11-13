@@ -338,9 +338,7 @@ public class WinCelebration : MonoBehaviour
     }
 
     // Kris, Susie and Ralsei: their dance frames in a loop, with a small bob on every beat.
-    // Noelle has no dance frames of her own, so hers is made from her pictures, four beats long: shuffle, hop, shuffle, hop. The hops
-    // use the jump pictures and lean to one side, the shuffles swing her arms (the spell pictures) and slide from side to side,
-    // facing the way she slides.
+    // Noelle has no dance frames of her own, so hers is made from her pictures (see below).
     void Pose(Dancer d, float t, Vector2 pos)
     {
         float b = t / Beat + d.phase;
@@ -358,34 +356,18 @@ public class WinCelebration : MonoBehaviour
             return;
         }
 
-        int step = Mathf.FloorToInt(b) & 3;
-        float f = b - Mathf.Floor(b);                                // 0..1 inside the beat
+        // Noelle does not hop: her arms swing (the spell pictures) while she slides from side to side, facing the way she slides,
+        // with a slight lean.
         float sway = Mathf.Sin(b * Mathf.PI * 0.5f);                 // slides right and left over four beats
         float dir = Mathf.Cos(b * Mathf.PI * 0.5f);                  // the way she slides
-
-        Sprite s;
-        float lift = 0f, tilt = 0f, sx = 1f, sy = 1f;
-        if ((step & 1) == 1)
-        {
-            lift = Mathf.Sin(f * Mathf.PI) * 70f;
-            var jump = d.set.jump;
-            s = jump[Mathf.Min(jump.Length - 1, (int)(f * jump.Length))];
-            tilt = (step == 1 ? 1f : -1f) * 8f * Mathf.Sin(f * Mathf.PI);
-            sx = 0.95f;
-            sy = 1.06f;
-        }
-        else
-        {
-            var cycle = d.set.special != null && d.set.special.Length > 0 ? d.set.special : d.set.move;
-            s = cycle[(int)(t * d.fps + d.phase * 3f) % cycle.Length];
-            if (f < 0.2f) { sx = 1.06f; sy = 0.92f; }                // squashed as she lands
-        }
+        var cycle = d.set.special != null && d.set.special.Length > 0 ? d.set.special : d.set.move;
+        var s = cycle[(int)(t * d.fps + d.phase * 3f) % cycle.Length];
 
         d.img.sprite = s;
         d.rt.sizeDelta = s.rect.size * d.factor;
-        d.rt.anchoredPosition = pos + new Vector2(sway * 26f, lift);
-        d.rt.localRotation = Quaternion.Euler(0f, 0f, tilt);
-        d.rt.localScale = new Vector3((dir >= 0f ? 1f : -1f) * sx, sy, 1f);
+        d.rt.anchoredPosition = pos + new Vector2(sway * 26f, 0f);
+        d.rt.localRotation = Quaternion.Euler(0f, 0f, sway * 4f);
+        d.rt.localScale = new Vector3(dir >= 0f ? 1f : -1f, 1f, 1f);
     }
 
     // Lower on the screen = nearer = drawn in front.
