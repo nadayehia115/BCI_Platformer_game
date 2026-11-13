@@ -28,6 +28,7 @@ public class PauseMenu : MonoBehaviour
     Image pauseFace, resumeFace, exitFace;
     GameObject pauseButton, panel;
     float savedScale = 1f;
+    float nextRowCheck;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     static void Hook()
@@ -134,6 +135,8 @@ public class PauseMenu : MonoBehaviour
 
     void Update()
     {
+        KeepPortraitsBesidePause();
+
         if (LevelEnd.Instance != null && LevelEnd.Instance.Ended)       // the end screen has its own buttons
         {
             if (pauseButton.activeSelf) pauseButton.SetActive(false);
@@ -157,6 +160,40 @@ public class PauseMenu : MonoBehaviour
         bool enter = kb != null && (kb.enterKey.wasPressedThisFrame || kb.numpadEnterKey.wasPressedThisFrame || kb.spaceKey.wasPressedThisFrame);
         if (toggle || enter || Clicked(resumeFace)) Resume();
         else if ((kb != null && kb.mKey.wasPressedThisFrame) || Clicked(exitFace)) ExitToMenu();
+    }
+
+    // The portraits of the friends (the HUD's top right) sit next to the pause button, on its left, so that the button does not
+    // cover the last one (Susie). Measured on the screen, so it holds for any window size.
+    void KeepPortraitsBesidePause()
+    {
+        if (Time.unscaledTime < nextRowCheck) return;
+        nextRowCheck = Time.unscaledTime + 0.5f;
+
+        RectTransform row = null;
+        foreach (var switcher in FindObjectsByType<CharacterSwitcher>(FindObjectsSortMode.None))
+            if (switcher.GetComponent<HorizontalLayoutGroup>() != null) { row = (RectTransform)switcher.transform; break; }
+        if (row == null) return;
+        LayoutRebuilder.ForceRebuildLayoutImmediate(row);
+
+        var corners = new Vector3[4];
+        ((RectTransform)pauseButton.transform).GetWorldCorners(corners);
+        float pauseLeft = corners[0].x;
+        float right = float.MinValue;
+        foreach (RectTransform child in row)
+        {
+            if (!child.gameObject.activeInHierarchy) continue;
+            child.GetWorldCorners(corners);
+            right = Mathf.Max(right, corners[2].x);
+        }
+        if (right == float.MinValue) return;
+
+        var pauseCanvas = pauseButton.GetComponentInParent<Canvas>();
+        float gap = 14f * (pauseCanvas != null ? pauseCanvas.scaleFactor : 1f);
+        float move = pauseLeft - gap - right;                                    // screen pixels; negative = to the left
+        if (Mathf.Abs(move) < 1f) return;
+        var hudCanvas = row.GetComponentInParent<Canvas>();
+        float scale = hudCanvas != null ? Mathf.Max(0.01f, hudCanvas.rootCanvas.scaleFactor) : 1f;
+        row.anchoredPosition += new Vector2(move / scale, 0f);
     }
 
     static bool Over(Image face)

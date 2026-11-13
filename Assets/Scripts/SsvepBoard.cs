@@ -38,6 +38,7 @@ public class SsvepBoard : MonoBehaviour
     CanvasGroup group;
     bool wanted;                                   // an obstacle that needs a power is near
     float nextCheck;
+    bool wasCovered;
 
     // The frequency (Hz) of the pad (a list of one), as it is on the screen right now.
     public static float[] Frequencies => SsvepSettings.Frequencies();
@@ -123,10 +124,18 @@ public class SsvepBoard : MonoBehaviour
             Debug.LogWarning("SSVEP: Assets/Resources/SsvepPad.prefab is missing (Tools > Setup SSVEP Pad makes it).");
             return;
         }
-        var hudCanvas = switcher.GetComponentInParent<Canvas>();
-        var parent = hudCanvas != null ? hudCanvas.rootCanvas.transform : switcher.transform;
+        // The pad has its own canvas (above the HUD): the HUD canvas is faded away while the dark fountain's smoke covers the screen
+        // (KrisForms), and the pad has to stay on that black screen.
+        var canvasGo = new GameObject("SSVEP Canvas", typeof(RectTransform));
+        var padCanvas = canvasGo.AddComponent<Canvas>();
+        padCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
+        padCanvas.sortingOrder = 70;
+        var scaler = canvasGo.AddComponent<CanvasScaler>();
+        scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+        scaler.referenceResolution = new Vector2(1920f, 1080f);
+        scaler.matchWidthOrHeight = 1f;
         var host = new GameObject("SSVEP Board", typeof(RectTransform), typeof(CanvasGroup));
-        host.transform.SetParent(parent, false);
+        host.transform.SetParent(canvasGo.transform, false);
         var rect = (RectTransform)host.transform;
         rect.anchorMin = Vector2.zero;
         rect.anchorMax = Vector2.one;
@@ -139,6 +148,7 @@ public class SsvepBoard : MonoBehaviour
     void OnDestroy()
     {
         if (Instance == this) Instance = null;
+        if (canvas != null) Destroy(canvas.gameObject);
     }
 
     void Build(GameObject prefab)
@@ -167,6 +177,7 @@ public class SsvepBoard : MonoBehaviour
     // The pad has a real size (centimetres): pixels on this screen, then canvas units (the canvas is scaled to the screen). It stays
     // in the middle of the screen from left to right, and is raised so that its lower edge floats a little above Kris's head (the
     // camera keeps Kris in the middle of the screen). A very large pad is kept on the screen, even if it then covers him.
+    // While the smoke of the dark fountain covers the screen (black, no Kris) it is in the middle both ways.
     void ApplySize()
     {
         float scale = Mathf.Max(0.01f, canvas.scaleFactor);
@@ -183,11 +194,16 @@ public class SsvepBoard : MonoBehaviour
         float rise = (headPixels + gapPixels) / scale + diameter / 2f;                // the middle of the pad above the middle of the screen
         float highest = Screen.height / scale / 2f - diameter / 2f - 10f;             // keep the pad on the screen
         padRect.anchoredPosition = new Vector2(0f, Mathf.Min(rise, Mathf.Max(0f, highest)));
+
+        // On the black screen of the dark fountain Kris is not seen: the pad is in the exact middle of the screen, both ways.
+        if (KrisForms.Instance != null && KrisForms.Instance.Covered) padRect.anchoredPosition = Vector2.zero;
     }
 
     // Fades the pad in while an obstacle that needs a friend is near, and out when there is none.
     void Update()
     {
+        bool covered = KrisForms.Instance != null && KrisForms.Instance.Covered;
+        if (covered != wasCovered) { wasCovered = covered; nextCheck = 0f; }          // the pad moves to the middle at once
         if (Time.unscaledTime >= nextCheck)
         {
             nextCheck = Time.unscaledTime + 0.2f;

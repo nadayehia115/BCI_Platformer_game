@@ -19,6 +19,7 @@ public class ScoreUI : MonoBehaviour
     int shownLives = -1;
     int popHeart = -1;
     float heartPop;
+    float heartsAlpha = 1f;                                  // the hearts fade away while the dark fountain's smoke covers the screen
 
     // A published game starts at the main menu, so this has to run for every scene that loads, not only the first one.
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
@@ -148,5 +149,13 @@ public class ScoreUI : MonoBehaviour
         }
 
         ShowLives();
+
+        heartsAlpha = Mathf.MoveTowards(heartsAlpha, KrisForms.LivesHidden ? 0f : 1f, Time.unscaledDeltaTime / 0.6f);
+        foreach (var heart in hearts)
+        {
+            var c = heart.color;
+            c.a = heartsAlpha;
+            heart.color = c;
+        }
     }
 }

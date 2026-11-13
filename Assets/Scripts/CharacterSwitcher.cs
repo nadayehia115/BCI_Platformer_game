@@ -76,6 +76,21 @@ public class CharacterSwitcher : MonoBehaviour
             Debug.Log("The pad is not out: press S at the obstacle first (the dark fountain plays, then the pad appears).");
             return false;
         }
+        var forms = KrisForms.Instance;
+        if (forms != null && forms.Covered)
+        {
+            // The smoke of the dark fountain still covers the screen: the pad goes away, the smoke lifts, and only then the friend
+            // comes in, so that he is seen arriving.
+            bool found = PowerTargets.Nearest(true, 0f, out var hidden);
+            KrisForms.Disarm();
+            forms.Lift(() =>
+            {
+                if (!found) return;
+                Select(hidden.power);
+                ShowSelected(true);
+            });
+            return found;
+        }
         if (!PowerTargets.Nearest(true, 0f, out var target))
         {
             Debug.Log("No obstacle in sight needs a friend's power.");

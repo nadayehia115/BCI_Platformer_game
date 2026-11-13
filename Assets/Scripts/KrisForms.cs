@@ -8,13 +8,15 @@ using UnityEngine.UI;
 
 // The dark fountain. Kris wears his BLUE suit from the start and for the whole game. At every obstacle that needs a friend's power
 // (a pool, a tree, a box) the player presses S (the Python S key, or S in Unity) and the DARK FOUNTAIN plays where Kris stands: the
-// room goes dark, stars twinkle, a white flash, a beam of darkness, then smoke covers Kris and he jumps out of it. Only then the
-// flickering SSVEP pad appears (SsvepBoard) and the power can be activated: the Python T (the classification says the player
-// kept the focus) brings in the friend the obstacle needs (CharacterSwitcher.AutoSelect). That uses the pad up: the pad goes away
-// and the next obstacle starts with S again.
+// room goes dark, stars twinkle, Kris raises the knife and stabs the floor, a white flash, a beam of darkness, then black smoke
+// rises to the top of the screen, spreads along it and comes down like a curtain until the whole screen is black.
+//
+// On that black screen the flickering SSVEP pad appears (SsvepBoard) and stays until the Python T (the classification says the
+// player kept the focus). Then the pad goes away, the smoke lifts and shows the game again, and the friend the obstacle needs is
+// brought in (CharacterSwitcher.AutoSelect). Kris and the level clock wait all that time. The next obstacle starts with S again.
 //
 // It builds itself when GameScene loads (like LevelEnd), so it survives merges. The sprites come from FountainArt.
-// If the art is missing, S arms the pad at once, without the animation.
+// If the art is missing, S arms the pad at once, without the animation and without the black screen.
 public class KrisForms : MonoBehaviour
 {
     const string GameSceneName = "GameScene";
@@ -36,6 +38,23 @@ public class KrisForms : MonoBehaviour
     // A power was activated: the pad is used up.
     public static void Disarm() => PowersUnlocked = false;
     public bool DarkWorld { get; private set; }
+
+    // The smoke covers the whole screen and the pad is out on it: the game waits for T. Lift() takes the smoke away again and
+    // then calls `whenDone` (CharacterSwitcher brings the friend in there, so that he is seen arriving).
+    public bool Covered { get; private set; }
+
+    // The hearts (ScoreUI) are hidden from the moment the smoke comes down until it has lifted again, like the portraits of the
+    // friends: only the clock and the pause button stay on the black screen.
+    public static bool LivesHidden { get; private set; }
+    Action afterLift;
+    bool lifting;
+
+    public void Lift(Action whenDone)
+    {
+        if (!Covered || lifting) return;
+        afterLift = whenDone;
+        lifting = true;
+    }
 
     FountainArt art;
     PlayerController kris;
@@ -69,6 +88,7 @@ public class KrisForms : MonoBehaviour
     static void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         PowersUnlocked = true;
+        LivesHidden = false;
         if (scene.name != GameSceneName || FindFirstObjectByType<KrisForms>() != null) return;
         new GameObject("Kris Forms").AddComponent<KrisForms>();
     }
@@ -79,6 +99,7 @@ public class KrisForms : MonoBehaviour
     {
         if (Instance == this) Instance = null;
         PowersUnlocked = true;
+        LivesHidden = false;
         if (LevelEnd.Instance != null) LevelEnd.Instance.Paused = false;
     }
 
@@ -187,10 +208,13 @@ public class KrisForms : MonoBehaviour
     IEnumerator Fountain()
     {
         cutscene = true;
-        PlayFountainSound();
-        dissipate = false;                                                         // (it may still be set from the last time)
-        smokeRunning = false;
+        Covered = false;
+        lifting = false;
+        afterLift = null;
+        smokeStop = false;
         sparkling = false;
+        if (cam == null) cam = Camera.main;
+        PlayFountainSound();
         if (LevelEnd.Instance != null) LevelEnd.Instance.Paused = true;          // the clock waits during the cutscene
 
         // Kris stops where he is
@@ -223,13 +247,24 @@ public class KrisForms : MonoBehaviour
         sparkling = true;
         StartCoroutine(Sparkle());
         yield return Fade(overlay, new Color(0.04f, 0.06f, 0.3f, 0.6f), 0.8f);
-        yield return Wait(0.3f);
 
-        // 2. Kris hops, his eyes glow red
-        float[] hop = { 0f, 0.25f, 0.4f, 0.2f };
-        yield return Play(art.making, 7, 10, 0.2f, i => hop[i - 7]);
+        // 2. Kris jumps up with the knife raised, his eyes glow red, and he hangs in the air for a moment
+        float[] hop = { 0.15f, 0.35f, 0.5f, 0.45f };
+        yield return Play(art.making, 7, 10, 0.15f, i => hop[i - 7]);
+        for (int n = 0; n < 3; n++)
+            yield return Play(art.making, 9, 10, 0.15f, i => i == 9 ? 0.5f : 0.45f);
 
-        // 3. a white ellipse on the floor, Kris as a white silhouette on the cracks
+        // 3. he stabs the floor: a white line runs along it, then a white ellipse, and Kris is a white silhouette on the cracks
+        Pose(art.making[11], 0f);
+        var line = NewSprite("Fountain line", FountainFx.White, 81);
+        line.transform.position = new Vector3(spot.x, feetY + 0.04f, 0f);
+        for (float t = 0f; t < 0.3f; t += Time.deltaTime)
+        {
+            line.transform.localScale = new Vector3(Mathf.Lerp(0.2f, 8f, t / 0.3f), 0.07f, 1f);
+            Fit();
+            yield return null;
+        }
+        Destroy(line.gameObject);
         var crack = NewSprite("Fountain cracks", art.making[22], 79);
         crack.transform.position = new Vector3(spot.x, feetY - (art.making[22].bounds.min.y + art.PadOf(art.making[22])), 0f);
         var glow = NewSprite("Fountain glow", FountainFx.Ellipse, 81);
@@ -272,41 +307,82 @@ public class KrisForms : MonoBehaviour
         Destroy(beamOutline.gameObject);
         Destroy(glow.gameObject);
 
-        // 6. smoke rises and covers Kris (he stays blue: the light world frames of the sheet are not used)
-        cut.sprite = idle;
-        Pose(idle, 0f);
+        // 6. Kris kneels where he stabbed the floor, and black smoke rises from that spot up to the top of the screen
+        Pose(art.making[19], 0f);
         StartCoroutine(Smoke());
-        yield return Wait(2.0f);
+        yield return Wait(1.3f);
 
-        // 7. he jumps out of the smoke, curls into a ball, lands
-        cut.sortingOrder = order + 200;                                           // in front of the smoke now
-        yield return Play(art.krisTransform, 14, 18, 0.1f, i => 2.6f * (i - 13) / 5f);
-        yield return Play(art.krisTransform, 19, 19, 0.12f, i => 2.7f);
-        yield return Play(art.krisTransform, 20, 23, 0.09f, i => Mathf.Lerp(2.5f, 0.4f, (i - 20) / 3f));
-        dissipate = true;                                                         // the smoke thins out as he lands
-        yield return Play(art.krisTransform, 24, 25, 0.12f);
-        yield return Play(art.krisTransform, 26, 26, 0.25f);
-        while (smokeRunning) yield return null;
+        // 7. the smoke spreads along the top of the screen, then comes down like a curtain until everything is black
+        if (cam != null)
+        {
+            LivesHidden = true;                                                   // the hearts and the portraits fade away
+            StartCoroutine(FadeHud(0f, 1f));
+            BuildCurtain();
+            yield return MoveCurtain(0f, 0f, 0f, 1f, 0.9f);
+            yield return MoveCurtain(0f, 1f, 1f, 1f, 3.0f);
+        }
+        smokeStop = true;
+        yield return null;
 
-        // 8. Kris is free again, the portraits are back and the pad appears
+        // 8. behind the black screen the room is put back as it was; on the black screen the pad appears and flickers until T
         foreach (var go in stage) if (go != null) Destroy(go);
         stage.Clear();
-        Arm();
+        if (krisSprite != null) { krisSprite.enabled = true; krisSprite.flipX = false; }
+        if (animator != null) animator.enabled = true;
+        ShowPad(cam == null);
+        if (cam != null)
+        {
+            Covered = true;
+            if (LevelEnd.Instance != null) LevelEnd.Instance.Paused = false;     // the clock runs while the player focuses on the pad
+            while (!lifting)
+            {
+                PlaceCurtain(1f, 1f);
+                yield return null;
+            }
+            Covered = false;
+
+            // 9. T: the pad is used up (it fades away), the smoke lifts and the game is back
+            yield return MoveCurtain(1f, 0f, 1f, 1f, 1.4f);
+            foreach (var go in curtainObjects) if (go != null) Destroy(go);
+            curtainObjects.Clear();
+            curtain = null;
+        }
+
+        // 10. Kris is free again, the hearts and portraits are back, and the friend arrives (see CharacterSwitcher.AutoSelect)
+        LivesHidden = false;
+        StartCoroutine(FadeHud(1f, 0.6f));
+        Release();
         cutscene = false;
         if (LevelEnd.Instance != null) LevelEnd.Instance.Paused = false;
+        var then = afterLift;
+        afterLift = null;
+        lifting = false;
+        then?.Invoke();
     }
 
-    // Kris is a normal, controllable, animated Kris again, and the fountain's gift is switched on: the pad appears, T works.
+    // No animation (the fountain art is missing): the pad appears at once and Kris stays free.
     void Arm()
+    {
+        ShowPad();
+        Release();
+    }
+
+    // The fountain's gift is switched on: the portraits are there, the pad appears, T works.
+    void ShowPad(bool showHud = true)
     {
         DarkWorld = true;
         PowersUnlocked = true;
+        if (showHud) StartCoroutine(FadeHud(1f, 0.6f));
+        SsvepBoard.Create(switcher);
+    }
+
+    // Kris is a normal, controllable, animated Kris again.
+    void Release()
+    {
         if (body != null) { body.bodyType = RigidbodyType2D.Dynamic; body.linearVelocity = Vector2.zero; }
         if (krisSprite != null) { krisSprite.enabled = true; krisSprite.flipX = false; }
         if (animator != null) animator.enabled = true;
         if (kris != null) kris.enabled = true;
-        StartCoroutine(FadeHud(1f, 0.6f));
-        SsvepBoard.Create(switcher);
     }
 
     // ---- the pieces of the sequence ----
@@ -411,51 +487,66 @@ public class KrisForms : MonoBehaviour
         if (sr != null) Destroy(sr.gameObject);
     }
 
-    // The smoke: puffs (white outline behind, black fill in front, so only the outside of the cloud has an outline) rise from
-    // Kris's feet and pile up into a column that covers him. `dissipate` makes them shrink away.
+    // ---- the smoke ----
+    // All of it is drawn on the top sorting layer, above everything of the level (the HUD and the pad are above it: they are on
+    // screen canvases). Every white outline is behind every black shape, so only the outside of the whole cloud has an outline.
+    const int SmokeOutlineOrder = 32000, SmokeFillOrder = 32002;
+
+    static int TopLayer()
+    {
+        var layers = SortingLayer.layers;
+        return layers.Length > 0 ? layers[layers.Length - 1].id : 0;
+    }
+
+    SpriteRenderer NewSmoke(string name, Sprite sprite, bool outline, List<GameObject> list)
+    {
+        var go = new GameObject(name);
+        list.Add(go);
+        var sr = go.AddComponent<SpriteRenderer>();
+        sr.sprite = sprite;
+        sr.sortingLayerID = TopLayer();
+        sr.sortingOrder = outline ? SmokeOutlineOrder : SmokeFillOrder;
+        sr.color = outline ? Color.white : Color.black;
+        return sr;
+    }
+
+    // The column: puffs rise from the spot Kris stabbed and pile up into a column that reaches above the top of the screen.
     class Puff { public Transform outline, fill; public float born, speed, size, x, drift; }
-    bool dissipate, smokeRunning;
+    bool smokeStop;
 
     IEnumerator Smoke()
     {
-        smokeRunning = true;
         var puffs = new List<Puff>();
-        float nextSpawn = 0f, dissipateStart = -1f;
-        float riseLimit = cam != null ? cam.orthographicSize * 1.6f : 11f;
-
-        while (true)
+        float nextSpawn = 0f;
+        while (!smokeStop)
         {
             float now = Time.time;
-            if (!dissipate && now >= nextSpawn)
+            float riseLimit = cam != null ? cam.transform.position.y + cam.orthographicSize + 2f - feetY : 11f;
+            if (now >= nextSpawn)
             {
                 nextSpawn = now + 0.04f;
                 var p = new Puff
                 {
                     born = now,
-                    speed = UnityEngine.Random.Range(3.2f, 5.5f),
-                    size = UnityEngine.Random.Range(0.7f, 1.1f),
-                    x = UnityEngine.Random.Range(-0.35f, 0.35f),
-                    drift = UnityEngine.Random.Range(-0.15f, 0.15f),
+                    speed = UnityEngine.Random.Range(4.5f, 7.5f),
+                    size = UnityEngine.Random.Range(0.7f, 1.15f),
+                    x = UnityEngine.Random.Range(-0.45f, 0.45f),
+                    drift = UnityEngine.Random.Range(-0.2f, 0.2f),
                 };
-                p.outline = NewSprite("Smoke outline", FountainFx.Disc, 95).transform;
-                p.fill = NewSprite("Smoke", FountainFx.Disc, 97).transform;
-                p.outline.GetComponent<SpriteRenderer>().color = Color.white;
-                p.fill.GetComponent<SpriteRenderer>().color = Color.black;
+                p.outline = NewSmoke("Smoke outline", FountainFx.Disc, true, stage).transform;
+                p.fill = NewSmoke("Smoke", FountainFx.Disc, false, stage).transform;
                 puffs.Add(p);
             }
-            if (dissipate && dissipateStart < 0f) dissipateStart = now;
-
-            float shrink = dissipateStart < 0f ? 1f : Mathf.Clamp01(1f - (now - dissipateStart) / 0.7f);
             foreach (var p in puffs)
             {
+                if (p.fill == null || p.outline == null) continue;
                 float age = now - p.born;
                 var at = new Vector3(spot.x + p.x + p.drift * age, feetY + 0.3f + Mathf.Min(p.speed * age, riseLimit), 0f);
-                float scale = p.size * Mathf.Clamp01(age / 0.5f) * shrink;
+                float scale = p.size * Mathf.Clamp01(age / 0.4f);
                 p.fill.position = p.outline.position = at;
                 p.fill.localScale = Vector3.one * scale;
-                p.outline.localScale = Vector3.one * (scale * 1.12f);
+                p.outline.localScale = Vector3.one * (scale + 0.1f);
             }
-            if (dissipateStart >= 0f && now - dissipateStart > 0.75f) break;
             yield return null;
         }
         foreach (var p in puffs)
@@ -463,7 +554,77 @@ public class KrisForms : MonoBehaviour
             if (p.outline != null) Destroy(p.outline.gameObject);
             if (p.fill != null) Destroy(p.fill.gameObject);
         }
-        smokeRunning = false;
+    }
+
+    // The curtain: a black block with a row of round puffs along its lower edge (the scalloped cloud front of the video). It hangs
+    // from the camera: `cover` 0 = only the puffs show at the top of the screen, 1 = the whole screen is black. `spread` 0..1 lets
+    // the puffs grow outwards from the column.
+    class CurtainParts { public Transform block; public Transform[] outline, fill; public float[] x, y, size, phase; }
+    CurtainParts curtain;
+    readonly List<GameObject> curtainObjects = new List<GameObject>();
+    const float DiscRadius = 1.5f;                                 // FountainFx.Disc at scale 1
+
+    void BuildCurtain()
+    {
+        foreach (var go in curtainObjects) if (go != null) Destroy(go);
+        curtainObjects.Clear();
+
+        float halfW = cam.orthographicSize * cam.aspect + 2f;
+        const float spacing = 2.1f;
+        int count = Mathf.CeilToInt(halfW * 2f / spacing) + 1;
+        curtain = new CurtainParts
+        {
+            outline = new Transform[count], fill = new Transform[count],
+            x = new float[count], y = new float[count], size = new float[count], phase = new float[count],
+        };
+        curtain.block = NewSmoke("Smoke curtain", FountainFx.White, false, curtainObjects).transform;
+        for (int i = 0; i < count; i++)
+        {
+            curtain.outline[i] = NewSmoke("Smoke curtain outline", FountainFx.Disc, true, curtainObjects).transform;
+            curtain.fill[i] = NewSmoke("Smoke curtain puff", FountainFx.Disc, false, curtainObjects).transform;
+            curtain.x[i] = -halfW + i * spacing + UnityEngine.Random.Range(-0.25f, 0.25f);
+            curtain.y[i] = UnityEngine.Random.Range(-0.25f, 0.25f);
+            curtain.size[i] = UnityEngine.Random.Range(0.85f, 1.2f);
+            curtain.phase[i] = UnityEngine.Random.Range(0f, Mathf.PI * 2f);
+        }
+        PlaceCurtain(0f, 0f);
+    }
+
+    void PlaceCurtain(float cover, float spread)
+    {
+        if (curtain == null || cam == null) return;
+        Vector3 c = cam.transform.position;
+        float halfH = cam.orthographicSize, halfW = halfH * cam.aspect;
+        // the row of puffs: just above the top of the screen (only their lower halves show) ... well below its bottom
+        float edge = Mathf.Lerp(c.y + halfH + 0.3f, c.y - halfH - DiscRadius * 1.2f - 1f, cover);
+
+        float blockHeight = halfH * 2f + 8f;
+        curtain.block.position = new Vector3(c.x, edge + 0.4f + blockHeight / 2f, 0f);
+        curtain.block.localScale = new Vector3(halfW * 2f + 6f, blockHeight, 1f);
+
+        float reach = halfW + 3f + Mathf.Abs(spot.x - c.x);        // how far the smoke has to run from the column
+        for (int i = 0; i < curtain.fill.Length; i++)
+        {
+            float x = c.x + curtain.x[i];
+            float grown = Mathf.Clamp01((spread * (reach + 2.5f) - Mathf.Abs(x - spot.x)) / 2.5f);
+            float scale = curtain.size[i] * grown;
+            var at = new Vector3(x, edge + curtain.y[i] + 0.12f * Mathf.Sin(Time.time * 2f + curtain.phase[i]), 0f);
+            curtain.fill[i].position = curtain.outline[i].position = at;
+            curtain.fill[i].localScale = Vector3.one * scale;
+            curtain.outline[i].localScale = Vector3.one * (grown > 0f ? scale + 0.1f : 0f);
+        }
+    }
+
+    IEnumerator MoveCurtain(float coverFrom, float coverTo, float spreadFrom, float spreadTo, float seconds)
+    {
+        for (float t = 0f; t < seconds; t += Time.deltaTime)
+        {
+            float k = t / seconds;
+            PlaceCurtain(Mathf.Lerp(coverFrom, coverTo, Mathf.SmoothStep(0f, 1f, k)), Mathf.Lerp(spreadFrom, spreadTo, k));
+            Fit();
+            yield return null;
+        }
+        PlaceCurtain(coverTo, spreadTo);
     }
 
     // ---- the HUD (portraits) ----

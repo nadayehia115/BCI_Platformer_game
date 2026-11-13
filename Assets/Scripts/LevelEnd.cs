@@ -28,6 +28,7 @@ public class LevelEnd : MonoBehaviour
     public float TimeLimit => timeLimit + Bonus;                // the limit including the bonus
     public float Remaining => Mathf.Max(0f, TimeLimit - Elapsed);
     public bool Ended { get; private set; }
+    bool celebrating;                                            // the level won dance is playing: the end screen comes after it
     public bool Paused { get; set; }                             // the clock stands still (the dark fountain cutscene)
     public int FinalScore { get; private set; }                  // only set once the game has ended: the time left x points per second
     public int HighScorePlace { get; private set; } = -1;        // 0 = new best score, 1 = second, 2 = third, -1 = not in the top 3
@@ -103,6 +104,7 @@ public class LevelEnd : MonoBehaviour
             return;
         }
 
+        if (celebrating) return;                                         // (a key skips the dance, see WinCelebration)
         var kb = Keyboard.current;
         if (kb == null) return;
         if (kb.enterKey.wasPressedThisFrame || kb.numpadEnterKey.wasPressedThisFrame || kb.rKey.wasPressedThisFrame) PlayAgain();
@@ -190,7 +192,18 @@ public class LevelEnd : MonoBehaviour
         HighScorePlace = HighScores.Submit(FinalScore);                          // saved on this computer if it is in the top 3 (the menu shows them)
         Time.timeScale = 0f;                             // the game stops behind the screen
         RemoteInput.SetHorizontal(0f);
-        BuildScreen(win, message);
+        if (win)
+        {
+            // The four characters dance, and the same screen then shows LEVEL WON!, the score and the buttons (WinCelebration): no
+            // pop-up. Only if its pictures are missing the pop-up with the score is shown.
+            celebrating = true;                              // WinCelebration reads the keys itself (Enter / R, M / Esc)
+            WinCelebration.Play(FinalScore, PlayAgain, MainMenu, () =>
+            {
+                celebrating = false;
+                BuildScreen(win, message);
+            });
+        }
+        else BuildScreen(win, message);
     }
 
     void BuildScreen(bool win, string message)
@@ -255,33 +268,20 @@ public class LevelEnd : MonoBehaviour
         // dim the game, then a light panel with a black frame (black text on it, like the rest of the menus)
         var dim = Box("Dim", screen.transform, new Vector2(4000f, 3000f), new Color(0f, 0f, 0.05f, 0.7f), Vector2.zero);
         dim.raycastTarget = true;
-        var frameOuter = Box("Panel frame", screen.transform, new Vector2(1200f, 780f), Color.black, new Vector2(0f, 20f));
-        var panel = Box("Panel", frameOuter.transform, new Vector2(1180f, 760f), new Color(0.97f, 0.95f, 0.88f), Vector2.zero);
+        var frameOuter = Box("Panel frame", screen.transform, new Vector2(1200f, 640f), Color.black, Vector2.zero);
+        var panel = Box("Panel", frameOuter.transform, new Vector2(1180f, 620f), new Color(0.97f, 0.95f, 0.88f), Vector2.zero);
 
-        var title = Label(win ? "YOU WIN!" : "YOU LOSE", panel.transform, 150f, new Vector2(0f, 270f), new Vector2(1100f, 190f));
+        // only the result, the score (on a win) and the two buttons
+        var title = Label(win ? "YOU WIN!" : "YOU LOSE", panel.transform, 150f, new Vector2(0f, win ? 170f : 90f), new Vector2(1100f, 190f));
         title.color = win ? new Color(0.05f, 0.45f, 0.2f) : new Color(0.65f, 0.1f, 0.1f);
-        Label(message, panel.transform, 52f, new Vector2(0f, 165f), new Vector2(1100f, 80f));
-        Label($"TIME LEFT   {FormatTime(Remaining)}   ({Remaining:0.0} s)", panel.transform, 64f, new Vector2(0f, 80f), new Vector2(1100f, 90f));   // the exact seconds are what the score uses
-        Label($"SCORE   {FinalScore}", panel.transform, 100f, new Vector2(0f, -10f), new Vector2(1100f, 130f));
-        if (HighScorePlace >= 0)
-        {
-            string[] places = { "1ST", "2ND", "3RD" };
-            var best = Label($"NEW HIGH SCORE!   {places[HighScorePlace]} PLACE", panel.transform, 44f, new Vector2(0f, -68f), new Vector2(1100f, 60f));
-            best.color = new Color(0.8f, 0.45f, 0f);
-        }
-        Label(win ? $"{pointsPerSecond} points for every second left   -   gems collected {ScoreManager.Score} / {FindTotalGems()}"
-                  : $"gems collected {ScoreManager.Score} / {FindTotalGems()}", panel.transform, 34f, new Vector2(0f, -112f), new Vector2(1100f, 44f));
+        if (win) Label($"SCORE   {FinalScore}", panel.transform, 100f, new Vector2(0f, 10f), new Vector2(1100f, 130f));
 
-        MakeButton("PLAY AGAIN", new Vector2(-300f, -170f), PlayAgain);
-        MakeButton("MAIN MENU", new Vector2(300f, -170f), MainMenu);
-        Label("Enter / R: play again      M / Esc: main menu", panel.transform, 40f, new Vector2(0f, -330f), new Vector2(1100f, 60f));
+        MakeButton("PLAY AGAIN", new Vector2(-290f, -170f), PlayAgain);
+        MakeButton("EXIT", new Vector2(290f, -170f), MainMenu);          // back to the main menu (Enter / R and M / Esc work too)
     }
 
-    // The gems still in the level plus the ones already collected, so the screen can say "gems collected x / total".
-    int FindTotalGems() => ScoreManager.Score + FindObjectsByType<ScorePoint>(FindObjectsSortMode.None).Length;
-
     // The buttons need an EventSystem; the project uses the new Input System, so its UI module is used.
-    static void EnsureEventSystem()
+    internal static void EnsureEventSystem()
     {
         var existing = FindFirstObjectByType<EventSystem>();
         if (existing != null)

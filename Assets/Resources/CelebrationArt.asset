@@ -1,0 +1,81 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 83ea950433706fc47ae32f934198ae36, type: 3}
+  m_Name: CelebrationArt
+  m_EditorClassIdentifier: Assembly-CSharp::CelebrationArt
+  kris:
+    dance:
+    - {fileID: 21300000, guid: 79fa658e53ff2ab45ae5677fcb7a7828, type: 3}
+    - {fileID: 21300000, guid: 4b6b5a774cdd6764797205d454449301, type: 3}
+    - {fileID: 21300000, guid: 2f9d420a25129764296314632514a76e, type: 3}
+    - {fileID: 21300000, guid: a22c1d57133c87b40b96745779b93936, type: 3}
+    idle: []
+    move: []
+    jump: []
+    special: []
+  susie:
+    dance:
+    - {fileID: 21300000, guid: 237bb21db87d0134f8eedbe0203568b9, type: 3}
+    - {fileID: 21300000, guid: 4acac26a8cfcd6942ab3fbad6ec1994a, type: 3}
+    - {fileID: 21300000, guid: a5a3795724115534e9efb9954ca8700e, type: 3}
+    - {fileID: 21300000, guid: b9a59c7730283374f9c5d46bda29f686, type: 3}
+    - {fileID: 21300000, guid: fc5f46c2d4b3c6e49a1a9e03e05f295f, type: 3}
+    - {fileID: 21300000, guid: 159f93af7b29be54196d83ed74c5eb07, type: 3}
+    - {fileID: 21300000, guid: 0bc021639e6986f45a72ff76deffc506, type: 3}
+    - {fileID: 21300000, guid: fddacc066f56d3c4b894dd436bc00416, type: 3}
+    - {fileID: 21300000, guid: c17fb6162ad3c3445b9c33e9d3c6e02e, type: 3}
+    - {fileID: 21300000, guid: 4b9b1b67fd4e6904f9502165ae2f6140, type: 3}
+    idle: []
+    move: []
+    jump: []
+    special: []
+  ralsei:
+    dance:
+    - {fileID: 21300000, guid: d9f1e190c600c3a4cbe12ed294f48c98, type: 3}
+    - {fileID: 21300000, guid: 62e0cdab8b2e1d54fadeca92ae456415, type: 3}
+    - {fileID: 21300000, guid: 4dd754f7b0629c14493cd98b3466b5bd, type: 3}
+    - {fileID: 21300000, guid: 6345ba11649fe154896f35e9d48f5934, type: 3}
+    - {fileID: 21300000, guid: c4ca6b53dd362e543929fd47676256e8, type: 3}
+    - {fileID: 21300000, guid: 12791b64c41564d45b32ce89d68a5bbd, type: 3}
+    - {fileID: 21300000, guid: 149832e823844c44390f8b5b222ddae6, type: 3}
+    - {fileID: 21300000, guid: 8a7338732b03afb4b8dd1d6eb22517cc, type: 3}
+    idle: []
+    move: []
+    jump: []
+    special: []
+  noelle:
+    dance: []
+    idle:
+    - {fileID: 21300000, guid: efd2bb58b0967664ba62b101059b4eec, type: 3}
+    - {fileID: 21300000, guid: 297827a3e05386a4b8dd8bfb7bdb3a86, type: 3}
+    - {fileID: 21300000, guid: 5b7fddac63bc3e04085c9e3476220964, type: 3}
+    - {fileID: 21300000, guid: 29ee072fb74120b45b6b3ae19085204b, type: 3}
+    - {fileID: 21300000, guid: 07d491882cfc7af4981f0978a0e02daf, type: 3}
+    - {fileID: 21300000, guid: bcf9ad5e7c83f6945a26e526c61f7905, type: 3}
+    - {fileID: 21300000, guid: e0d6f60fd8ffa8342b30a095850e2270, type: 3}
+    - {fileID: 21300000, guid: 40c6aa767617fb74c8c73dc95322975e, type: 3}
+    - {fileID: 21300000, guid: 3f3173b972ccf0c49b4c1d164f80b239, type: 3}
+    - {fileID: 21300000, guid: 6baca613c24b6cc489461441ea1620cd, type: 3}
+    move:
+    - {fileID: 21300000, guid: 427aafd8fde341b47baf2951255082ee, type: 3}
+    - {fileID: 21300000, guid: 7b4c7f386034d3f46b8b5001ef48fd5c, type: 3}
+    - {fileID: 21300000, guid: 0f7468d6408986149bee85cb6ac0e9c5, type: 3}
+    - {fileID: 21300000, guid: bd09bc66596e81f479c439a83c83e6c3, type: 3}
+    - {fileID: 21300000, guid: 4688c4b3f91054b4c9d36dbb3bf216c5, type: 3}
+    - {fileID: 21300000, guid: e3270bd42c845aa4fac13284004f4909, type: 3}
+    - {fileID: 21300000, guid: 2f8a67d9adb1b6146ac1d1aa528c4a01, type: 3}
+    - {fileID: 21300000, guid: 83ac76b9b332f224b9cb2cdad1b73c40, type: 3}
+    jump:
+    - {fileID: 21300000, guid: 050f6a5c42f5aed48ba8c5b6e4f1f633, type: 3}
+    - {fileID: 21300000, guid: 087b6d6bd43a6db42b06a598cfcb626d, type: 3}
+    - {fileID: 21300000, guid: dd2f8e90590c5f8409273745769aa6dd, type: 3}
+    special: []
