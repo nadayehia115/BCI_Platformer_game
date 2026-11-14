@@ -1,0 +1,20 @@
+BCI BUSTERS - FIRST-TIME SETUP (do this once on a new Windows computer)
+
+1. UNITY
+   Install Unity Hub, then install Unity 6000.3.11f1 (Unity 6.3 LTS).
+   In Unity Hub: Add > Add project from disk > choose this folder.
+   The first opening takes a few minutes and needs internet (Unity downloads packages).
+
+2. PYTHON
+   Install Python 3.11 (tick "Add python to PATH"). Then, in a terminal, run:
+     pip install numpy scipy pandas scikit-learn joblib pylsl brainflow matplotlib
+   The game starts the Python files by itself.
+
+3. START
+   In Unity open the scene   Assets/Scenes/MainMenu   and press Play.
+
+4. IF NEEDED - settings file: Assets/Resources/BciSettings (click it, see the Inspector)
+   - Headset Serial: the number of your Unicorn headset (now UN-2022.03.74).
+   - Python Interpreter Path: write the full path of python.exe if "python" does not work.
+
+The keys are in HOW_TO_PLAY.txt.

@@ -1,0 +1,31 @@
+BCI BUSTERS - KEYS
+
+IN THE GAME
+  A or Left arrow ........ Kris walks left
+  D or Right arrow ....... Kris walks right
+  W, Up arrow or Space ... Kris jumps
+  S ...................... Kris falls down faster (when he is in the air)
+  F ...................... Starts the superpower. Stop at an obstacle first
+                           (water, tree or box). The screen goes dark and a
+                           flashing circle (the pad) appears.
+  T ...................... Uses the power. The right friend comes to help:
+                           Noelle for water, Ralsei for trees, Susie for boxes.
+                           (With the headset this happens by itself when you
+                           look at the cross in the middle of the flashing circle.)
+  P ...................... Pause the game (press P again to go on)
+  R ...................... Play again (on the end screen)
+  M ...................... Go to the main menu (on the pause or end screen)
+
+
+O = SKIP TO THE NEXT SCREEN (for demos)
+  Press O on a screen to jump to the next one:
+    1. Headset check screen ... goes to the training screen
+    2. Training screen ........ goes to the loading screen (no training is done)
+    3. Loading screen ......... goes to the game
+  A returning player: the warm-up screen goes to the game.
+  If you skipped the training, the brain signal is not used: press T for the power.
+
+
+PYTHON FILES
+  They are in the project folder here:   Assets\StreamingAssets\Python
+  The game starts them by itself. You do not need to run them.
