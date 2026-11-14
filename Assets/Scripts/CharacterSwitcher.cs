@@ -49,10 +49,10 @@ public class CharacterSwitcher : MonoBehaviour
         var kb = Keyboard.current;
         if (kb == null) return;
 
-        // A = superpower: it starts the dark fountain at the obstacle (then the pad appears). T = the classification says the player
+        // F = superpower: it starts the dark fountain at the obstacle (then the pad appears). T = the classification says the player
         // kept the focus on the pad (the placeholder of the live classifier's UDP "switch"): the friend the obstacle needs comes in.
-        // (S is "move down" now, see PlayerController.)
-        if (kb.aKey.wasPressedThisFrame) KrisForms.Request();
+        // (A / Left arrow = left, D / Right arrow = right, S = move down: see PlayerController.)
+        if (kb.fKey.wasPressedThisFrame) KrisForms.Request();
         if (kb.tKey.wasPressedThisFrame) AutoSelect();
     }
 
@@ -66,7 +66,7 @@ public class CharacterSwitcher : MonoBehaviour
 
     // The Python "switch" message (its T key) and the T key: the classification has shown that the player kept the focus on the pad,
     // so the power the nearest obstacle needs is brought in: water -> Noelle, a tree -> Ralsei, a box -> Susie (see PowerTargets).
-    // It only works once the fountain has played at the obstacle (S) and the pad is out, and it uses the pad up. With no obstacle in
+    // It only works once the fountain has played at the obstacle (F) and the pad is out, and it uses the pad up. With no obstacle in
     // sight nothing happens. Returns whether a friend was brought in (or is already at work).
     public bool AutoSelect()
     {
@@ -74,7 +74,7 @@ public class CharacterSwitcher : MonoBehaviour
         if (real != null) return real.AutoSelect();
         if (!KrisForms.PowersUnlocked)
         {
-            Debug.Log("The pad is not out: press S at the obstacle first (the dark fountain plays, then the pad appears).");
+            Debug.Log("The pad is not out: press F at the obstacle first (the dark fountain plays, then the pad appears).");
             return false;
         }
         var forms = KrisForms.Instance;

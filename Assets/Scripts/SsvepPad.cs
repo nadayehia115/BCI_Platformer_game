@@ -26,6 +26,44 @@ public class SsvepPad : MonoBehaviour
 
     void OnEnable() => Refresh();
 
+    // The grey ring behind the pad (a child of the prefab called "Ring"); it has to go away too when the pad is gone.
+    Image ring;
+    void SetRingVisible(bool visible)
+    {
+        if (ring == null)
+        {
+            var t = transform.Find("Ring");
+            if (t != null) ring = t.GetComponent<Image>();
+        }
+        if (ring != null) ring.enabled = visible;
+    }
+
+    // The calibration's PREPARE phase: the pad's outline (black circle in its grey ring) and the white crosshair, still: it shows where
+    // the pad will flicker, but nothing flickers yet.
+    public void ShowOutline()
+    {
+        enabled = false;
+        if (pad != null) pad.color = Color.black;
+        if (crosshair != null) crosshair.color = Color.white;
+        SetRingVisible(true);
+    }
+
+    // The calibration's REST phase: the circle (and its ring) is gone and only the crosshair stays, still (white on black); the flicker stops.
+    public void ShowOnlyCrosshair()
+    {
+        enabled = false;                                   // Update no longer changes the colours
+        if (pad != null) pad.color = Color.clear;
+        if (crosshair != null) crosshair.color = Color.white;
+        SetRingVisible(false);
+    }
+
+    // The pad flickers again (Update takes over the colours).
+    public void ShowFlicker()
+    {
+        SetRingVisible(true);
+        enabled = true;
+    }
+
     // Take the pad's frequency from the settings again (after they changed, or after the screen's real rate was measured).
     public void Refresh()
     {

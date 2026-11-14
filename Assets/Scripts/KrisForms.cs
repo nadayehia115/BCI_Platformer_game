@@ -27,7 +27,7 @@ public class KrisForms : MonoBehaviour
     // and SsvepBoard.
     public static bool PowersUnlocked { get; private set; } = true;
 
-    // The fountain at the obstacle in front of Kris: the Python S key (message "s") and the S key in Unity. Nothing happens while
+    // The fountain at the obstacle in front of Kris: the F key in Unity (and the old Python message "s"). Nothing happens while
     // it is already playing, while the pad is already out, or when no obstacle needs a friend's power on the screen.
     public static void Request()
     {

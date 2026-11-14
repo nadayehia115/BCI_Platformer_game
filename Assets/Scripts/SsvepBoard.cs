@@ -26,6 +26,7 @@ public class SsvepBoard : MonoBehaviour
     const float PrefabDiameter = 200f;             // the pad disc of the prefab is 200 units across
     const int WarmUpFrames = 45, MeasureFrames = 120;
     const float FadeSeconds = 0.5f;
+    const float UsedUpFadeSeconds = 0.25f;        // the pad that has been used up (T) vanishes quickly, on the spot
 
     public static SsvepBoard Instance { get; private set; }
     public static bool Calibrated { get; private set; }
@@ -39,6 +40,7 @@ public class SsvepBoard : MonoBehaviour
     bool wanted;                                   // an obstacle that needs a power is near
     float nextCheck;
     bool wasCovered;
+    bool holdCentre;                               // the smoke lifts (Covered is over) but the pad is still fading away: it stays in the middle
 
     // The frequency (Hz) of the pad (a list of one), as it is on the screen right now.
     public static float[] Frequencies => SsvepSettings.Frequencies();
@@ -195,22 +197,31 @@ public class SsvepBoard : MonoBehaviour
         float highest = Screen.height / scale / 2f - diameter / 2f - 10f;             // keep the pad on the screen
         padRect.anchoredPosition = new Vector2(0f, Mathf.Min(rise, Mathf.Max(0f, highest)));
 
-        // On the black screen of the dark fountain Kris is not seen: the pad is in the exact middle of the screen, both ways.
-        if (KrisForms.Instance != null && KrisForms.Instance.Covered) padRect.anchoredPosition = Vector2.zero;
+        // On the black screen of the dark fountain Kris is not seen: the pad is in the exact middle of the screen, both ways. When T
+        // has used the pad up and the smoke lifts, it stays right there while it fades away (it must not float up with the smoke).
+        if (holdCentre || (KrisForms.Instance != null && KrisForms.Instance.Covered)) padRect.anchoredPosition = Vector2.zero;
     }
 
     // Fades the pad in while an obstacle that needs a friend is near, and out when there is none.
     void Update()
     {
         bool covered = KrisForms.Instance != null && KrisForms.Instance.Covered;
-        if (covered != wasCovered) { wasCovered = covered; nextCheck = 0f; }          // the pad moves to the middle at once
+        if (covered != wasCovered)
+        {
+            wasCovered = covered;
+            nextCheck = 0f;                                                         // the pad moves to the middle at once
+            if (covered) holdCentre = true;
+        }
+        if (holdCentre && !covered && group.alpha <= 0.001f) holdCentre = false;      // gone: it may go back above Kris's head (unseen)
         if (Time.unscaledTime >= nextCheck)
         {
             nextCheck = Time.unscaledTime + 0.2f;
             wanted = KrisForms.PowersUnlocked && PowerTargets.Nearest(true, 0f, out _);
             ApplySize();                                                            // the window may have been resized
         }
-        group.alpha = Mathf.MoveTowards(group.alpha, wanted ? 1f : 0f, Time.unscaledDeltaTime / FadeSeconds);
+        bool usedUp = !KrisForms.PowersUnlocked;                                    // T / the classifier just used the pad: start fading NOW
+        if (usedUp) wanted = false;
+        group.alpha = Mathf.MoveTowards(group.alpha, wanted ? 1f : 0f, Time.unscaledDeltaTime / (usedUp ? UsedUpFadeSeconds : FadeSeconds));
     }
 
     // Takes the frequency from the settings again (after they changed, or after the screen's real rate was measured).

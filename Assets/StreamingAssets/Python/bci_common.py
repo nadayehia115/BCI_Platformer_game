@@ -22,14 +22,16 @@ OCC_CHANNELS = ["Oz", "PO7", "PO8"]                     # the channels over the 
 OCC_IDX = [EEG_CHANNELS.index(c) for c in OCC_CHANNELS]
 FS = 250
 LINE_FREQ = 50.0                                        # mains frequency (60.0 in the Americas)
-EPOCH_SECONDS = 4.0                                     # one training / live window
-EPOCH_OFFSET_SECONDS = 1.0                              # skipped at the start of a block: the attention takes about a second to settle
+EPOCH_SECONDS = 4.0                                     # one training / live window = the 4 s the pad flickers (as in the lab paradigm)
+EPOCH_OFFSET_SECONDS = 0.0                              # nothing is skipped: the 2 s "prepare" before the flicker lets the eyes settle
+
+# One trial of the calibration (the same sequence as the lab's SSVEP paradigm):  PREPARE 2 s (the pad's outline and the crosshair,
+# no flicker)  ->  FLICKER 4 s (marker 1 at its start, the player looks at the crosshair)  ->  REST 2 s (marker 99 at its start)
 
 # ---- markers Unity sends while the calibration runs ----
-MARK_FOCUS = 1          # the pad flickers and the player looks at it
-MARK_IGNORE = 2         # the pad flickers but the player looks at the dot in the corner
-MARK_END = 99           # a block has finished
-MARK_DISCARD = 98       # the block that was running is thrown away (the player paused)
+MARK_FOCUS = 1          # the pad flickers and the player looks at the crosshair in its middle - THE ONE CLASS of the game
+MARK_END = 99           # the flicker is over, the rest begins
+MARK_DISCARD = 98       # what was running is thrown away (the player paused)
 
 # ---- UDP ports (localhost) ----
 PORT_GAME = 5005        # Unity's BciListener: ping / switch

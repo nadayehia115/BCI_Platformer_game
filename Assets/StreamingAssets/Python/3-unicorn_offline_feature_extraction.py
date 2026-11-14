@@ -1,14 +1,22 @@
 """
-Unicorn BCI offline feature extraction (silent version, SSVEP "focus the pad" paradigm)
----------------------------------------------------------------------------------------
+Unicorn BCI offline feature extraction (silent version, SSVEP "look at the crosshair of the flickering pad": ONE class)
+--------------------------------------------------------------------------------------------------------------------
 Started by Unity's loading screen right after the calibration (no window, no GUI):
 
-    python 3-unicorn_offline_feature_extraction.py --profile "C:\\Users\\me\\Documents\\ActiveProfile.json"
+    python 3-unicorn_offline_feature_extraction.py --profile "C:/Users/me/Documents/ActiveProfile.json"
 
-Reads every  <DataDir>/offline/SSVEP_training_*.csv  recorded by file 2 (older calibrations of the same profile are used too),
-cuts one 4 s epoch from 1 s after every FOCUS (marker 1) and IGNORE (marker 2) block start (blocks are 5 s long), drops the epochs that hit an artifact or a block that
-was discarded (marker 98 inside the epoch), and writes
-    <DataDir>/offline/ML_features_SSVEP.csv   one row per epoch: the 6 SSVEP features + Target_Class (1 focus, 2 ignore)
+The calibration is the lab paradigm: the player reads the instruction (no flicker), PREPARE 2 s (pad outline + crosshair, once), then
+FLICKER 4 s (marker 1 at its start; the player looks at the crosshair in the middle of the flickering pad) and REST 2 s (marker 99 at its
+start), again and again. Reads every  <DataDir>/offline/SSVEP_training_*.csv  recorded by file 2 (older calibrations of the same profile
+are used too) and cuts
+
+    * one 4 s FOCUS epoch from every marker 1 (the whole flicker), the ONE class of the game (Target_Class 1);
+    * REFERENCE windows: 4 s windows of EEG without any flicker (up to 3 per quiet period, counted back from the next flicker start): the
+      calm time before the first flicker, and any gap between two flickers that is long enough. They are NOT a class: file 4 never trains
+      on them, it only measures how often the detector wrongly says "focus" without a flicker (Target_Class 0).
+
+Epochs that hit an artifact or a discarded block (marker 98 = the player paused) are dropped, and write
+    <DataDir>/offline/ML_features_SSVEP.csv   one row per window: the 6 SSVEP features + Target_Class (1 focus, 0 reference)
     <DataDir>/offline/quality_report_SSVEP.txt
     <DataDir>/offline/grand_avg_SSVEP.png     (when matplotlib is installed)
 The features are computed by bci_common.ssvep_features - the SAME function the live classifier (bci_game.py) uses.
@@ -52,6 +60,9 @@ def main():
     _, offline_dir, _ = bc.profile_dirs(profile)
     line_freq = float(profile.get("LineFrequency", bc.LINE_FREQ))
     freq = float(profile["TrueFrequency"])
+    demo = bool(profile.get("DemoMode")) or str(profile.get("Username", "")).strip().lower() == "test"
+    if demo:
+        bc.log("DEMO USER: artifact rejection is off (the demo may run with bad electrodes)")
 
     files = sorted(glob.glob(os.path.join(offline_dir, "SSVEP_training_*.csv")))
     if not files:
@@ -61,8 +72,14 @@ def main():
 
     epoch_len = int(bc.FS * bc.EPOCH_SECONDS)
     offset = int(bc.FS * bc.EPOCH_OFFSET_SECONDS)
+    tolerance = int(bc.FS * 0.1)                                 # a frame or two of jitter between Unity's timing and the samples
+    max_reference_per_period = 3
     feats, labels, rejected, discarded = [], [], 0, 0
-    focus_spec, ignore_spec = [], []
+    focus_spec, reference_spec = [], []
+
+    def too_dirty(artifact, a0, a1):
+        return (not demo) and float(np.mean(artifact[a0:a1] != 0)) > MAX_ARTIFACT_FRAC
+
     for csv_file in files:
         f_rec = read_frequency(profile, csv_file)
         if abs(f_rec - freq) > 0.01:
@@ -73,28 +90,57 @@ def main():
         eeg = df[bc.EEG_CHANNELS].to_numpy(dtype=float)
         artifact = df["Artifact_Flag"].to_numpy() if "Artifact_Flag" in df.columns else np.zeros(len(df))
         discard_at = np.where(marker == bc.MARK_DISCARD)[0]
+        end_at = np.where(marker == bc.MARK_END)[0]
 
-        for t in np.where(np.isin(marker, [bc.MARK_FOCUS, bc.MARK_IGNORE]))[0]:
-            s = t + offset                                       # the epoch starts a second into the block
-            if s + epoch_len > len(df):
+        # the quiet periods (no flicker): from the start of the recording / the end of a flicker to the start of the next flicker
+        quiet_periods, quiet_start, open_flicker = [], 0, False
+        for i in np.where(marker != 0)[0]:
+            code = int(marker[i])
+            if code == bc.MARK_FOCUS:
+                quiet_periods.append((quiet_start, int(i)))
+                open_flicker = True
+            elif code in (bc.MARK_END, bc.MARK_DISCARD) and open_flicker:
+                quiet_start, open_flicker = int(i), False
+
+        # ---- the FOCUS epochs: the 4 s the pad flickers ----
+        for t in np.where(marker == bc.MARK_FOCUS)[0]:
+            s0 = t + offset
+            if s0 + epoch_len > len(df):
                 continue
-            if np.any((discard_at >= t) & (discard_at < s + epoch_len)):
+            if np.any((discard_at >= t) & (discard_at < s0 + epoch_len)):
                 discarded += 1
-                continue
-            if float(np.mean(artifact[s: s + epoch_len] != 0)) > MAX_ARTIFACT_FRAC:
+            elif too_dirty(artifact, s0, s0 + epoch_len):
                 rejected += 1
-                continue
-            epoch = bc.prepare_epoch(eeg[s: s + epoch_len], bc.FS, line_freq)
-            feats.append(bc.ssvep_features(epoch, freq, bc.FS, line_freq, already_prepared=True))
-            labels.append(int(marker[t]))
-            (focus_spec if marker[t] == bc.MARK_FOCUS else ignore_spec).append(epoch[:, bc.OCC_IDX].mean(axis=1))
+            else:
+                epoch = bc.prepare_epoch(eeg[s0: s0 + epoch_len], bc.FS, line_freq)
+                feats.append(np.nan_to_num(np.asarray(bc.ssvep_features(epoch, freq, bc.FS, line_freq, already_prepared=True), dtype=float)))
+                labels.append(1)
+                focus_spec.append(epoch[:, bc.OCC_IDX].mean(axis=1))
+
+        # ---- the REFERENCE windows: 4 s without flicker, counted back from the next flicker start ----
+        for q_start, q_end in quiet_periods:
+            for k in range(1, max_reference_per_period + 1):
+                r1 = q_end - (k - 1) * epoch_len
+                r0 = r1 - epoch_len
+                if r0 < max(0, q_start - tolerance):
+                    break
+                if np.any((discard_at >= r0) & (discard_at < r1)) or too_dirty(artifact, r0, r1):
+                    continue
+                epoch = bc.prepare_epoch(eeg[r0: r1], bc.FS, line_freq)
+                feats.append(np.nan_to_num(np.asarray(bc.ssvep_features(epoch, freq, bc.FS, line_freq, already_prepared=True), dtype=float)))
+                labels.append(0)
+                reference_spec.append(epoch[:, bc.OCC_IDX].mean(axis=1))
 
     if not feats:
-        bc.log("ERROR: no valid epochs after artifact removal")
+        bc.log(f"ERROR: no valid epochs after artifact removal (rejected {rejected}, discarded {discarded})")
+        return 1
+
+    if 1 not in labels:
+        bc.log(f"ERROR: no valid FOCUS epoch (rejected {rejected}, discarded {discarded})")
         return 1
 
     feat_df = pd.DataFrame(np.array(feats), columns=bc.FEATURE_NAMES)
-    feat_df["Target_Class"] = labels
+    feat_df["Target_Class"] = labels                              # 1 = focus (the one class), 0 = no-flicker reference (never trained on)
     out_csv = os.path.join(offline_dir, "ML_features_SSVEP.csv")
     feat_df.to_csv(out_csv, index=False)
 
@@ -103,8 +149,8 @@ def main():
         f.write(f"Quality audit: SSVEP | {profile['ProfileID']}\n{'=' * 40}\n")
         f.write(f"Files processed: {len(files)}\nPad frequency: {freq} Hz\n")
         f.write(f"Epochs kept: {len(feat_df)}\nEpochs rejected (artifact): {rejected}\nEpochs discarded (paused): {discarded}\n")
-        f.write(f"Epochs per class (1 focus, 2 ignore): {counts}\n")
-    bc.log(f"features saved: {out_csv}   epochs per class {counts}   rejected {rejected}   discarded {discarded}")
+        f.write(f"Epochs per class (1 focus, 2 rest): {counts}\n")
+    bc.log(f"features saved: {out_csv}   windows {counts} (1 focus, 0 reference)   rejected {rejected}   discarded {discarded}")
 
     try:                                                         # a picture for the researcher; optional
         import matplotlib
@@ -112,7 +158,7 @@ def main():
         import matplotlib.pyplot as plt
         from scipy import signal
         fig, ax = plt.subplots(figsize=(8, 4))
-        for spec, name, color in ((focus_spec, "focus the pad", "tab:red"), (ignore_spec, "look at the dot", "tab:gray")):
+        for spec, name, color in ((focus_spec, "pad flickers (focus)", "tab:red"), (reference_spec, "no flicker (reference)", "tab:gray")):
             if spec:
                 f, p = signal.welch(np.array(spec), fs=bc.FS, axis=1, nperseg=len(spec[0]))
                 ax.plot(f, p.mean(axis=0), label=name, color=color)

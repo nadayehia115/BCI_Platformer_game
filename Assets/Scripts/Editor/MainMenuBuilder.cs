@@ -194,7 +194,7 @@ public static class MainMenuBuilder
             "We are the <b>BCI Busters</b>, and we need your help to clear the path!\n" +
             "Reach the flag before the clock runs out:\n" +
             "\u2022  Move Kris with A / D and jump with W.\n" +
-            "\u2022  Stop at an obstacle and press S: it awakens the power of Kris's sword, the dark fountain opens and a flashing pad appears.\n" +
+            "\u2022  Stop at an obstacle and press F: it awakens the power of Kris's sword, the dark fountain opens and a flashing pad appears.\n" +
             "\u2022  Focus on the pad: the power of your focus calls upon <b>Noelle</b> for water, <b>Ralsei</b> for trees or <b>Susie</b> for boxes, to help you overcome the obstacle you are standing at.\n" +
             "<b>The faster you finish, the higher your score!</b>",
             48, Ink, FontStyles.Normal, TextAlignmentOptions.TopLeft);

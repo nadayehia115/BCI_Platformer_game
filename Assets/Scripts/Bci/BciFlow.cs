@@ -5,8 +5,8 @@ using UnityEngine.SceneManagement;
 // The route through the BCI stages, and what starts when:
 //
 //   main menu PLAY -> profile popup (BciProfileManager)
-//   Stage 1  BciContrast          file 1 (headset streamer) starts silently; the player tunes the monitor brightness
-//   Stage 2  BciHeadsetCheck      the 8 electrodes turn green (colours come from file 1 by UDP)
+//   (Stage 1 BciContrast          the monitor-brightness screen: OFF for now, BciSettings.ShowContrastScreen brings it back)
+//   Stage 2  BciHeadsetCheck      file 1 (headset streamer) starts silently; the 8 electrodes turn green (colours come from file 1 by UDP)
 //   Stage 3  New user: TrainingCalibration  (file 2 records)      Old user: SessionCalibration  (the live classifier is started)
 //   Stage 4  New user: BciLoading           (file 3 -> file 4 train the model, a mini-game while waiting)
 //   then     MainLevel = the game scene (BciSettings.MainLevelScene); the live classifier (bci_game.py) runs there.
@@ -35,11 +35,14 @@ public static class BciFlow
         profile.Save();
         profile.ApplyToSsvep();
         if (profile.IsNewUser && File.Exists(profile.FlagPath)) File.Delete(profile.FlagPath);   // an old failure flag must not misdirect the new run
+        // A new user never has a model yet (the popup refuses a taken name) - except the demo user "test", whose old model is replaced; the loading
+        // screen would take it for the NEW one.
+        if (profile.IsNewUser && File.Exists(profile.ModelPath)) File.Delete(profile.ModelPath);
 
         var manager = BciProcessManager.Instance;
         manager.StartStatusListener();
         StartHeadset();
-        SceneManager.LoadScene(ContrastScene);
+        SceneManager.LoadScene(Settings.ShowContrastScreen ? ContrastScene : HeadsetScene);
     }
 
     // A stage scene played on its own (no popup before it): make a profile and start the headset script, so the scene has what it needs.

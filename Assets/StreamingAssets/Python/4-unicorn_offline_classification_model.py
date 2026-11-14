@@ -1,19 +1,27 @@
 """
-Unicorn BCI offline classifier (silent version, SSVEP "focus the pad" paradigm)
--------------------------------------------------------------------------------
+Unicorn BCI offline classifier (silent version, ONE class: "looking at the crosshair of the flickering pad")
+------------------------------------------------------------------------------------------------------------
 Started by Unity's loading screen after file 3:
 
     python 4-unicorn_offline_classification_model.py --profile "C:\\Users\\me\\Documents\\ActiveProfile.json"
 
-Trains two classifiers (Random Forest and an RBF SVM) on  <DataDir>/offline/ML_features_SSVEP.csv  (focus vs ignore),
-measures their accuracy with stratified cross-validation (every epoch is predicted by a model that never saw it: no leakage),
-keeps the better one and ALWAYS saves it - but under a name that tells Unity whether it is good enough:
+The game needs to recognise ONE thing: the player looking at the crosshair in the middle of the flickering pad (that activates the
+helper's power). So the model has ONE class. It is a one-class model (bci_model.FocusDetector: how strong the pad frequency shows in
+the EEG of focus epochs) trained ONLY on the focus epochs of <DataDir>/offline/ML_features_SSVEP.csv (Target_Class 1).
+
+How good is it? Cross-validation without leakage: every focus epoch is judged by a model that never saw it (recall), and the windows
+without flicker (Target_Class 0: the 2 s rest + 2 s prepare between two flickers) are used ONLY as a test: how many of them are
+correctly NOT accepted (specificity). accuracy = mean(recall, specificity). The model is always saved, under a name that tells Unity
+whether it is good enough:
 
     accuracy >= 65 %   ->  <ModelsDir>/<ProfileID>.joblib
     accuracy <  65 %   ->  <ModelsDir>/<ProfileID>_FAILED_DEBUG.joblib   and an empty file  <ModelsDir>/training_failed.flag
 
+DEMO EXCEPTION: for the user name "test" (profile "DemoMode") the model is ALWAYS saved as <ProfileID>.joblib, whatever its accuracy,
+and the flag is not written - so a demonstration can go on with data that is not good.
+
 so the poor data stays available for debugging, while Unity (the loading screen) sees the flag and sends the player back to
-the calibration. The model file is a joblib bundle: {"pipeline", "classes", "frequency", "feature_names", "accuracy", ...}.
+the calibration. The model file is a joblib bundle: {"detector", "classes": [1], "frequency", "feature_names", "accuracy", "threshold", ...}.
 """
 import argparse
 import os
@@ -22,28 +30,13 @@ import sys
 import joblib
 import numpy as np
 import pandas as pd
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import StratifiedKFold, cross_val_predict
-from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import StandardScaler
-from sklearn.svm import SVC
-from sklearn.metrics import accuracy_score, balanced_accuracy_score, confusion_matrix, cohen_kappa_score
 
 import bci_common as bc
+import bci_model as bm
 
 ACCURACY_THRESHOLD = 0.65         # below this the model is saved as *_FAILED_DEBUG and the retry flag is written
-RANDOM_STATE = 42
 FLAG_NAME = "training_failed.flag"
-
-
-def build_models():
-    return [
-        ("Random Forest", Pipeline([("clf", RandomForestClassifier(n_estimators=300, class_weight="balanced",
-                                                                   random_state=RANDOM_STATE))])),
-        ("RBF Kernel SVM", Pipeline([("scaler", StandardScaler()),
-                                     ("clf", SVC(kernel="rbf", C=1.0, gamma="scale", probability=True,
-                                                 class_weight="balanced", random_state=RANDOM_STATE))])),
-    ]
+KEEP_CHOICES = (0.9, 0.8, 1.0)    # the share of the focus epochs the model must accept (its boundary): the best one wins
 
 
 def main():
@@ -61,59 +54,67 @@ def main():
         bc.log(f"ERROR: feature matrix missing: {feat_path}")
         return 1
     df = pd.read_csv(feat_path)
-    y = df["Target_Class"].to_numpy()
-    X = df.drop(columns=["Target_Class"]).to_numpy()
     names = [c for c in df.columns if c != "Target_Class"]
-    classes = np.unique(y)
-    counts = {int(c): int((y == c).sum()) for c in classes}
-    bc.log(f"{len(y)} epochs, classes {counts}")
+    X_focus = df.loc[df["Target_Class"] == 1, names].to_numpy(dtype=float)           # the ONE class: the only thing trained on
+    X_ref = df.loc[df["Target_Class"] == 0, names].to_numpy(dtype=float)             # no flicker: only used to test
+    bc.log(f"{len(X_focus)} focus epochs (the one class), {len(X_ref)} no-flicker reference windows (test only)")
+    if len(X_focus) == 0:
+        bc.log("ERROR: no focus epoch in the feature matrix")
+        return 1
 
     results = []
-    can_validate = len(classes) == 2 and min(counts.values()) >= 2
+    can_validate = len(X_focus) >= 4
     if can_validate:
-        n_splits = int(max(2, min(5, min(counts.values()))))
-        cv = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=RANDOM_STATE)
-        for name, pipe in build_models():
-            pred = cross_val_predict(pipe, X, y, cv=cv)                       # out-of-fold predictions
-            acc = float(accuracy_score(y, pred))
-            results.append({"name": name, "pipe": pipe, "accuracy": acc, "balanced": float(balanced_accuracy_score(y, pred)),
-                            "kappa": float(cohen_kappa_score(y, pred)), "cm": confusion_matrix(y, pred)})
-            bc.log(f"{name}: {n_splits}-fold accuracy {acc * 100:.1f}%  balanced {results[-1]['balanced'] * 100:.1f}%  "
-                   f"kappa {results[-1]['kappa']:.2f}")
+        for keep in KEEP_CHOICES:
+            r = bm.evaluate(X_focus, X_ref, keep)
+            results.append(r)
+            spec = "n/a" if r["specificity"] is None else f"{r['specificity'] * 100:.1f}%"
+            bc.log(f"focus model keep={keep}: focus recall {r['recall'] * 100:.1f}%  no-flicker rejected {spec}  -> accuracy {r['accuracy'] * 100:.1f}%")
+        if not len(X_ref):
+            bc.log("WARNING: there are no no-flicker reference windows: the accuracy is only the share of focus epochs recognised")
     else:
-        bc.log("WARNING: not enough epochs of both classes to cross-validate; the model cannot be trusted")
-        for name, pipe in build_models():
-            results.append({"name": name, "pipe": pipe, "accuracy": 0.0, "balanced": 0.0, "kappa": 0.0, "cm": None})
+        bc.log("WARNING: fewer than 4 focus epochs: the model cannot be cross-validated and cannot be trusted")
+        results = [{"keep": KEEP_CHOICES[0], "recall": 0.0, "specificity": None, "accuracy": 0.0}]
 
     best = max(results, key=lambda r: r["accuracy"])
     accuracy = best["accuracy"]
-    best["pipe"].fit(X, y)                                                    # the deployed model learns from ALL epochs
+    detector = bm.FocusDetector(best["keep"]).fit(X_focus)                      # the deployed model learns from ALL focus epochs
 
-    bundle = {"pipeline": best["pipe"], "model_name": best["name"], "classes": classes, "profile_id": profile_id,
-              "frequency": float(profile["TrueFrequency"]), "feature_names": names, "accuracy": accuracy,
-              "epoch_seconds": bc.EPOCH_SECONDS, "line_frequency": float(profile.get("LineFrequency", bc.LINE_FREQ))}
+    bundle = {"detector": detector, "model_name": f"One-class focus model, keep={best['keep']}", "classes": [bc.MARK_FOCUS],
+              "profile_id": profile_id, "frequency": float(profile["TrueFrequency"]), "feature_names": names,
+              "accuracy": accuracy, "recall": best["recall"], "specificity": best["specificity"],
+              "threshold": bm.DEFAULT_THRESHOLD, "epoch_seconds": bc.EPOCH_SECONDS,
+              "line_frequency": float(profile.get("LineFrequency", bc.LINE_FREQ))}
+
+    demo = bool(profile.get("DemoMode")) or str(profile.get("Username", "")).strip().lower() == "test"
 
     # ---- the explicit data-sufficiency check ----
-    if accuracy >= ACCURACY_THRESHOLD:
+    if demo and accuracy < ACCURACY_THRESHOLD:
+        model_path = os.path.join(models_dir, f"{profile_id}.joblib")
+        joblib.dump(bundle, model_path)
+        if os.path.exists(flag_path):
+            os.remove(flag_path)
+        bc.log(f"DEMO USER: accuracy {accuracy * 100:.1f}% is below {ACCURACY_THRESHOLD * 100:.0f}%, but the model is saved anyway: {model_path}")
+    elif accuracy >= ACCURACY_THRESHOLD:
         model_path = os.path.join(models_dir, f"{profile_id}.joblib")
         joblib.dump(bundle, model_path)
         if os.path.exists(flag_path):
             os.remove(flag_path)                                              # an old failure must not hide this success
-        bc.log(f"MODEL SAVED ({best['name']}, accuracy {accuracy * 100:.1f}% >= {ACCURACY_THRESHOLD * 100:.0f}%): {model_path}")
+        bc.log(f"MODEL SAVED ({bundle['model_name']}, accuracy {accuracy * 100:.1f}% >= {ACCURACY_THRESHOLD * 100:.0f}%): {model_path}")
     else:
         model_path = os.path.join(models_dir, f"{profile_id}_FAILED_DEBUG.joblib")
         joblib.dump(bundle, model_path)                                       # keep the bad data's model for debugging
         open(flag_path, "w").close()                                          # empty file: Unity sends the player back to calibrate
-        bc.log(f"MODEL TOO WEAK ({best['name']}, accuracy {accuracy * 100:.1f}% < {ACCURACY_THRESHOLD * 100:.0f}%): "
+        bc.log(f"MODEL TOO WEAK ({bundle['model_name']}, accuracy {accuracy * 100:.1f}% < {ACCURACY_THRESHOLD * 100:.0f}%): "
                f"saved for debugging as {model_path}; wrote {flag_path}")
 
     with open(os.path.join(offline_dir, "report_SSVEP_COMPARISON.txt"), "w", encoding="utf-8") as f:
-        f.write(f"CLASSIFIER COMPARISON ({profile_id}, SSVEP, pad {profile['TrueFrequency']} Hz)\n")
-        f.write(f"Cross-validated (out-of-fold). Threshold for a usable model: {ACCURACY_THRESHOLD * 100:.0f}%\n\n")
+        f.write(f"ONE-CLASS MODEL ({profile_id}, SSVEP, pad {profile['TrueFrequency']} Hz)\n")
+        f.write(f"Trained only on {len(X_focus)} focus epochs; tested with {len(X_ref)} no-flicker windows. "
+                f"Threshold for a usable model: {ACCURACY_THRESHOLD * 100:.0f}%\n\n")
         for r in results:
-            f.write(f"{r['name']}: accuracy {r['accuracy'] * 100:.2f}%  balanced {r['balanced'] * 100:.2f}%  kappa {r['kappa']:.3f}\n")
-            if r["cm"] is not None:
-                f.write(f"confusion matrix (rows = true 1 focus / 2 ignore):\n{r['cm']}\n")
+            spec = "n/a" if r["specificity"] is None else f"{r['specificity'] * 100:.2f}%"
+            f.write(f"keep={r['keep']}: focus recall {r['recall'] * 100:.2f}%  no-flicker rejected {spec}  accuracy {r['accuracy'] * 100:.2f}%\n")
         f.write(f"\nSaved: {model_path}\n")
     return 0
 

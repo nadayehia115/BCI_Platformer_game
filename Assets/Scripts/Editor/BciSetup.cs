@@ -41,7 +41,7 @@ public static class BciSetup
     {
         if (AssetDatabase.LoadAssetAtPath<BciSettings>(SettingsPath) == null) return true;
         var art = AssetDatabase.LoadAssetAtPath<BciArt>(ArtPath);
-        if (art == null || art.crate == null) return true;
+        if (art == null || art.crate == null || art.tennaTalk == null || art.tennaPoint == null || art.tennaLaugh == null) return true;
         foreach (var (scene, _) in Scenes)
             if (!File.Exists($"Assets/Scenes/{scene}.unity")) return true;
         var inBuild = EditorBuildSettings.scenes.Select(s => s.path).ToHashSet();
@@ -62,6 +62,9 @@ public static class BciSetup
         tiles.TryGetValue("tilemap_packed_2", out art.grass);
         tiles.TryGetValue("tilemap_packed_5", out art.dirt);
         tiles.TryGetValue("tilemap_packed_26", out art.crate);
+        art.tennaTalk = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/deltarune/Tenna_Pointup_pose.png");
+        art.tennaPoint = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/deltarune/Tenna_point_at_screen.png");
+        art.tennaLaugh = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/deltarune/Tenna_laughing.png");
         if (newArt) AssetDatabase.CreateAsset(art, ArtPath);
         EditorUtility.SetDirty(art);
         AssetDatabase.SaveAssets();

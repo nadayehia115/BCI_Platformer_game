@@ -1683,7 +1683,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "<b>Hi!</b>\nWe are the <b>BCI Busters</b>, and we need your help to clear the path!\nReach the flag before the clock runs out:\n\u2022  Move Kris with A / D and jump with W.\n\u2022  Stop at an obstacle and press S: it awakens the power of Kris's sword, the dark fountain opens and a flashing pad appears.\n\u2022  Focus on the pad: the power of your focus calls upon <b>Noelle</b> for water, <b>Ralsei</b> for trees or <b>Susie</b> for boxes, to help you overcome the obstacle you are standing at.\n<b>The faster you finish, the higher your score!</b>"
+  m_text: "<b>Hi!</b>\nWe are the <b>BCI Busters</b>, and we need your help to clear the path!\nReach the flag before the clock runs out:\n\u2022  Move Kris with A / D and jump with W.\n\u2022  Stop at an obstacle and press F: it awakens the power of Kris's sword, the dark fountain opens and a flashing pad appears.\n\u2022  Focus on the pad: the power of your focus calls upon <b>Noelle</b> for water, <b>Ralsei</b> for trees or <b>Susie</b> for boxes, to help you overcome the obstacle you are standing at.\n<b>The faster you finish, the higher your score!</b>"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: c524baf5503da2247a48032548edfaa6, type: 2}
   m_sharedMaterial: {fileID: 5528077805402189573, guid: c524baf5503da2247a48032548edfaa6, type: 2}

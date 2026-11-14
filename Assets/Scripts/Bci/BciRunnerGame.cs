@@ -1,10 +1,11 @@
+using System.Linq;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
-// The mini-game of the loading screen: a tiny endless runner. Kris runs forward by himself on the game's own ground tiles; small crates
-// (a tile of the game's tileset) come towards him and he jumps over them with Space, W or the Up arrow. A crate that hits him only
-// makes him blink - it is a warm-up, not a test. Everything is UI images moved by code (it needs no scene and no physics), and it runs
+// The mini-game of the loading screen: a tiny endless runner. Kris (the running and jumping frames of the game itself) runs forward by himself on the game's own ground tiles; small crates
+// (a tile of the game's tileset) come towards him and he jumps over them with Space, W or the Up arrow. A crate that hits him just pops
+// away (nothing flashes) - it is a warm-up, not a test. Everything is UI images moved by code (it needs no scene and no physics), and it runs
 // on real time. Freeze() stops it when the model is ready.
 public class BciRunnerGame : MonoBehaviour
 {
@@ -12,21 +13,21 @@ public class BciRunnerGame : MonoBehaviour
     const float Speed = 430f;                   // how fast the world moves left (canvas units per second)
     const float JumpSpeed = 1180f, Gravity = 3300f;
     const float KrisX = -560f;
+    const float KrisScale = 5.5f;               // his 45-55 px pictures at 5.5x
 
     RectTransform world, kris;
     Image krisImage;
-    Sprite[] krisFrames;
+    Sprite[] runFrames, jumpFrames;
     Sprite crateSprite;
     RectTransform[] groundTiles;
     float groundTop;
     float groundOffset;
     float vy, height;
     float nextBox;
-    float blink;
     bool frozen;
     int jumps, bonks;
 
-    class Crate { public RectTransform rect; public bool passed; }
+    class Crate { public RectTransform rect; public bool passed; public float pop = -1f; }
     readonly System.Collections.Generic.List<Crate> crates = new System.Collections.Generic.List<Crate>();
 
     public int Jumps => jumps;
@@ -46,9 +47,8 @@ public class BciRunnerGame : MonoBehaviour
         world = root;
 
         var art = Resources.Load<BciArt>("BciArt");
-        var celebration = Resources.Load<CelebrationArt>("CelebrationArt");
-        krisFrames = celebration != null && celebration.kris.dance != null && celebration.kris.dance.Length > 0
-            ? celebration.kris.dance : new Sprite[0];
+        runFrames = LoadFrames("kris_run_", 3);
+        jumpFrames = LoadFrames("kris_jump_", 3);
         crateSprite = art != null ? art.crate : null;
 
         // the ground: two rows of the game's tiles (grass on top, earth below), one extra column so it can scroll without a gap
@@ -74,11 +74,7 @@ public class BciRunnerGame : MonoBehaviour
         kris.anchorMin = kris.anchorMax = new Vector2(0.5f, 0.5f);
         krisImage = kris.gameObject.AddComponent<Image>();
         krisImage.raycastTarget = false;
-        if (krisFrames.Length > 0)
-        {
-            krisImage.sprite = krisFrames[0];
-            kris.sizeDelta = krisFrames[0].rect.size * 6f;
-        }
+        if (runFrames.Length > 0) ShowKris(runFrames[0]);
         else kris.sizeDelta = new Vector2(120f, 160f);
 
         nextBox = 1.2f;
@@ -98,6 +94,25 @@ public class BciRunnerGame : MonoBehaviour
     }
 
     void PlaceKris() => kris.anchoredPosition = new Vector2(KrisX, groundTop + height);
+
+    // Kris's frames (Assets/Resources/Bci/kris_run_N, kris_jump_N): cut from the game's own "Kris run" / "Krisjump" pictures and put on ONE common
+    // canvas with the feet on the bottom edge and the body in the middle, so switching between running and jumping never moves or resizes him.
+    static Sprite[] LoadFrames(string prefix, int count)
+    {
+        var list = new System.Collections.Generic.List<Sprite>();
+        for (int i = 1; i <= count; i++)
+        {
+            var sprite = Resources.Load<Sprite>("Bci/" + prefix + i);
+            if (sprite != null) list.Add(sprite);
+        }
+        return list.ToArray();
+    }
+
+    void ShowKris(Sprite sprite)
+    {
+        krisImage.sprite = sprite;
+        kris.sizeDelta = sprite.rect.size * KrisScale;
+    }
 
     public void Freeze() => frozen = true;
 
@@ -126,11 +141,15 @@ public class BciRunnerGame : MonoBehaviour
         }
         PlaceKris();
 
-        // Kris's picture changes by itself while he runs
-        if (krisFrames.Length > 0)
-            krisImage.sprite = krisFrames[(int)(Time.unscaledTime * 7f) % krisFrames.Length];
-        blink = Mathf.Max(0f, blink - dt);
-        krisImage.color = blink > 0f && ((int)(blink * 14f) & 1) == 0 ? new Color(1f, 1f, 1f, 0.3f) : Color.white;
+        // Kris: the running frames on the ground, the jumping frames in the air (going up / top / coming down)
+        bool inAir = height > 0.01f;
+        if (inAir && jumpFrames.Length > 0)
+        {
+            int index = vy > 500f ? 0 : vy < -500f ? Mathf.Min(2, jumpFrames.Length - 1) : Mathf.Min(1, jumpFrames.Length - 1);
+            ShowKris(jumpFrames[index]);
+        }
+        else if (runFrames.Length > 0)
+            ShowKris(runFrames[(int)(Time.unscaledTime * 9f) % runFrames.Length]);
 
         // crates
         nextBox -= dt;
@@ -144,16 +163,21 @@ public class BciRunnerGame : MonoBehaviour
             var c = crates[i];
             c.rect.anchoredPosition += new Vector2(-Speed * dt, 0f);
             float x = c.rect.anchoredPosition.x;
-            // the hit: Kris's feet below the top of the crate while they overlap sideways
-            if (!c.passed && Mathf.Abs(x - KrisX) < TileSize * 0.55f + 28f && height < TileSize * 0.85f && blink <= 0f)
+            // the hit: Kris's feet below the top of the crate while they overlap sideways: the crate pops away
+            if (!c.passed && Mathf.Abs(x - KrisX) < TileSize * 0.55f + 28f && height < TileSize * 0.85f)
             {
-                blink = 0.9f;
                 bonks++;
                 c.passed = true;
+                c.pop = 0f;
             }
             else if (!c.passed && x < KrisX - TileSize)
                 c.passed = true;
-            if (x < -960f - TileSize)
+            if (c.pop >= 0f)
+            {
+                c.pop += dt;
+                c.rect.localScale = Vector3.one * Mathf.Max(0f, 1f - c.pop / 0.15f);
+            }
+            if (x < -960f - TileSize || c.pop > 0.15f)
             {
                 Destroy(c.rect.gameObject);
                 crates.RemoveAt(i);

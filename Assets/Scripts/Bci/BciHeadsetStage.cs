@@ -70,6 +70,7 @@ public class BciHeadsetStage : BciStage
         proceed.interactable = false;
 
         bubble = BciSpeechBubble.Create(root, new Vector2(0f, 0f), new Vector2(40f, 40f), 640f);
+        bubble.SetPose(BciSpeechBubble.Pose.Point);                       // Tenna points at the screen
         bubble.Say("Connecting to your headset...");
     }
 
@@ -77,6 +78,15 @@ public class BciHeadsetStage : BciStage
     {
         base.Update();
         if (gems[0] == null) return;
+
+        // DEMO: the letter O goes on even when the electrodes are not all green
+        var kb = UnityEngine.InputSystem.Keyboard.current;
+        if (kb != null && kb.oKey.wasPressedThisFrame)
+        {
+            Debug.Log("BCI: O pressed - going on without waiting for all electrodes (demo).");
+            BciFlow.AfterHeadsetCheck();
+            return;
+        }
         var manager = BciProcessManager.Instance;
 
         bool fresh = manager.Statuses.Count >= Names.Length && Time.unscaledTime - manager.LastStatusTime < 4f;

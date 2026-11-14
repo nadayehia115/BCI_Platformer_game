@@ -46,7 +46,10 @@ public class BciProfileManager : MonoBehaviour
 
         BciUi.Text("Title", root, "WHO IS PLAYING?", 80f, new Vector2(0f, 260f), new Vector2(950f, 100f), BciUi.Ink);
         input = BciUi.NewInput(root, new Vector2(0f, 150f), new Vector2(760f, 100f), "Username", 20);
-        message = BciUi.Text("Message", root, "", 40f, new Vector2(0f, 60f), new Vector2(980f, 60f), BciUi.Danger);
+        message = BciUi.Text("Message", root, "", 30f, new Vector2(0f, 62f), new Vector2(940f, 70f), BciUi.Danger, TextAlignmentOptions.Center, true);
+        message.enableAutoSizing = true;                                       // a long warning gets smaller / wraps, it never leaves the panel
+        message.fontSizeMin = 18f;
+        message.fontSizeMax = 30f;
 
         BciUi.NewButton("NEW USER", root, new Vector2(-250f, -70f), new Vector2(440f, 150f), 62f, () => Confirm(true));
         BciUi.NewButton("OLD USER", root, new Vector2(250f, -70f), new Vector2(440f, 150f), 62f, () => Confirm(false));
@@ -83,7 +86,8 @@ public class BciProfileManager : MonoBehaviour
         }
 
         var profile = BciProfile.Create(name, isNewUser);
-        if (isNewUser && (BciProfile.UsernameTaken(name) || profile.ModelExists))
+        // (the demo user "test" may be created again and again: its old model is replaced)
+        if (isNewUser && !profile.DemoMode && (BciProfile.UsernameTaken(name) || profile.ModelExists))
         {
             Warn("username used already, try another one");
             return;

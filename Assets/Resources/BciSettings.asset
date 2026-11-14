@@ -20,10 +20,14 @@ MonoBehaviour:
   LineFrequency: 50
   MainLevelScene: GameScene
   SkipBciFlow: 0
-  FocusSeconds: 5
-  IgnoreSeconds: 5
-  TrainingTrials: 12
-  SessionTrials: 3
+  ShowContrastScreen: 0
+  PrepareSeconds: 2
+  PrepareEveryTrial: 0
+  IntroSeconds: 10
+  FocusSeconds: 4
+  RestSeconds: 2
+  TrainingSeconds: 120
+  SessionSeconds: 30
   StatusPort: 5010
   ControlPort: 5011
   MarkerPort: 5007

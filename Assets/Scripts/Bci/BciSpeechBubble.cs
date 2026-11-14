@@ -4,14 +4,17 @@ using UnityEngine;
 using UnityEngine.UI;
 
 // The "character speech bubble": a character on the left and a speech bubble next to it, whose text appears letter by letter.
-// All the instructions of the BCI stages are said through it. The picture of the character is BciSettings.CharacterSprite (put your
-// sprite there); until there is one, Ralsei of the dance frames speaks.
+// The instructions of the setup stages (contrast, headset, loading) are said through it - NOT the calibration / training screens, where
+// the player must be able to concentrate. The speaker is Tenna (BciArt, Assets/deltarune); every time his words are typed his voice
+// (Resources/Audio/tenna_voice.mp3, the sound of the WhatsApp video) plays, and stops when the text is complete. BciSettings.CharacterSprite
+// overrides the picture; without Tenna's art Ralsei of the dance frames speaks.
 //
 //     var bubble = BciSpeechBubble.Create(canvasTransform, new Vector2(0f, 0f), new Vector2(60f, 50f));
 //     bubble.Say("Hello!");
 public class BciSpeechBubble : MonoBehaviour
 {
     const float LettersPerSecond = 55f;
+    public enum Pose { Talk, Point, Laugh }
 
     RectTransform characterRect;
     Image characterImage;
@@ -20,6 +23,8 @@ public class BciSpeechBubble : MonoBehaviour
     Coroutine typing;
     string current = "";
     float dim = 1f;
+    AudioSource voice;
+    static AudioClip voiceClip;
 
     // `anchor` is the corner of the screen (0,0 = bottom left, 1,0 = bottom right ...) the group sticks to, at `offset` from it.
     public static BciSpeechBubble Create(Transform canvas, Vector2 anchor, Vector2 offset, float bubbleWidth = 1000f, float dim = 1f)
@@ -37,6 +42,8 @@ public class BciSpeechBubble : MonoBehaviour
         if (chosen != null) return chosen;
         var fromResources = Resources.Load<Sprite>("Bci/character");              // Assets/Resources/Bci/character.png, if you add one
         if (fromResources != null) return fromResources;
+        var bci = Resources.Load<BciArt>("BciArt");
+        if (bci != null && bci.tennaTalk != null) return bci.tennaTalk;
         var art = Resources.Load<CelebrationArt>("CelebrationArt");
         return art != null && art.ralsei.dance != null && art.ralsei.dance.Length > 0 ? art.ralsei.dance[0] : null;
     }
@@ -45,8 +52,7 @@ public class BciSpeechBubble : MonoBehaviour
     {
         const float characterHeight = 260f;
         var sprite = FindCharacterSprite();
-        float aspect = sprite != null ? sprite.rect.width / sprite.rect.height : 0.7f;
-        float characterWidth = characterHeight * aspect;
+        float characterWidth = 230f;                          // a fixed box: every pose is fitted into it (preserveAspect), the bubble never moves
         float bubbleHeight = 230f;
 
         root.sizeDelta = new Vector2(characterWidth + 40f + bubbleWidth, Mathf.Max(characterHeight, bubbleHeight));
@@ -62,7 +68,15 @@ public class BciSpeechBubble : MonoBehaviour
         characterImage = characterRect.gameObject.AddComponent<Image>();
         characterImage.sprite = sprite;
         characterImage.raycastTarget = false;
+        characterImage.preserveAspect = true;
         characterImage.enabled = sprite != null;
+
+        voice = gameObject.AddComponent<AudioSource>();
+        voice.playOnAwake = false;
+        voice.loop = true;
+        voice.spatialBlend = 0f;
+        if (voiceClip == null) voiceClip = Resources.Load<AudioClip>("Audio/tenna_voice");
+        voice.clip = voiceClip;
 
         // the bubble, at the right of the character
         float bx = characterWidth + 40f;
@@ -107,15 +121,40 @@ public class BciSpeechBubble : MonoBehaviour
 
     public string Current => current;
 
+    // Tenna's pose: Talk (finger up, the normal one), Point (at the player), Laugh (good news).
+    public void SetPose(Pose pose)
+    {
+        var art = Resources.Load<BciArt>("BciArt");
+        if (art == null || characterImage == null || BciSettings.Instance.CharacterSprite != null) return;
+        var sprite = pose == Pose.Point ? art.tennaPoint : pose == Pose.Laugh ? art.tennaLaugh : art.tennaTalk;
+        if (sprite != null) characterImage.sprite = sprite;
+    }
+
+    void StartVoice()
+    {
+        if (voice == null || voice.clip == null) return;
+        var audio = AudioManager.Instance;
+        voice.volume = audio != null ? (audio.Muted ? 0f : audio.SfxVolume) : 0.8f;
+        voice.time = Random.Range(0f, Mathf.Max(0f, voice.clip.length - 4f));       // another piece of the babble every time
+        voice.Play();
+    }
+
+    void StopVoice()
+    {
+        if (voice != null && voice.isPlaying) voice.Stop();
+    }
+
     public void Say(string text, bool instant = false)
     {
         if (text == current) return;
         current = text;
         if (typing != null) StopCoroutine(typing);
+        StopVoice();
         label.text = text;
         if (instant)
         {
             label.maxVisibleCharacters = int.MaxValue;
+            typing = null;
             return;
         }
         typing = StartCoroutine(Type());
@@ -127,15 +166,19 @@ public class BciSpeechBubble : MonoBehaviour
         label.ForceMeshUpdate();
         int total = label.textInfo.characterCount;
         float shown = 0f;
+        StartVoice();                                          // Tenna talks while his words come
         while (shown < total)
         {
-            shown += Time.unscaledDeltaTime * LettersPerSecond;
+            shown += Mathf.Min(Time.unscaledDeltaTime, 0.05f) * LettersPerSecond;      // the first frame after a scene load is slow: it must not skip the words
             label.maxVisibleCharacters = Mathf.Min(total, Mathf.FloorToInt(shown));
             yield return null;
         }
         label.maxVisibleCharacters = int.MaxValue;
         typing = null;
+        StopVoice();
     }
+
+    void OnDisable() => StopVoice();
 
     void Update()
     {

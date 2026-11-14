@@ -63,9 +63,9 @@ public class PlayerController : MonoBehaviour
     {
         // Read raw input in Update
         // Keyboard, or the Python script's "move" commands when it is sending them (see RemoteInput)
-        // D / Right arrow = right, Left arrow = left (A is the superpower key now), W / Up / Space = jump, S = down.
+        // D / Right arrow = right, A / Left arrow = left (F is the superpower key), W / Up / Space = jump, S = down.
         float remote = RemoteInput.Horizontal;
-        float keyboard = (Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow) ? 1f : 0f) - (Input.GetKey(KeyCode.LeftArrow) ? 1f : 0f);
+        float keyboard = (Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow) ? 1f : 0f) - (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow) ? 1f : 0f);
         horizontalInput = remote != 0f ? remote : keyboard;
         moveDown = Input.GetKey(KeyCode.S);
 

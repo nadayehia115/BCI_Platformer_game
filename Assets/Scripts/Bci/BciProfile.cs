@@ -26,6 +26,10 @@ public class BciProfile
     public string ModelPath;            // <ModelsDir>/<ProfileID>.joblib (exists once the training succeeded)
     public string FlagPath;             // <ModelsDir>/training_failed.flag (written by file 4 when the model is too weak)
     public string CreatedUtc;
+    public bool DemoMode;               // the user name "test": the model is saved even when its accuracy is poor (file 4 reads this)
+
+    // The demo user (case does not matter).
+    public static bool IsDemoName(string name) => string.Equals((name ?? "").Trim(), "test", StringComparison.OrdinalIgnoreCase);
 
     // The profile of this run (set when the popup is confirmed).
     public static BciProfile Active { get; set; }
@@ -66,6 +70,7 @@ public class BciProfile
             ScreenWidth = resolution.width,
             ScreenHeight = resolution.height,
             RefreshRate = refresh,
+            DemoMode = IsDemoName(SanitizeName(username)),
             LineFrequency = BciSettings.Instance.LineFrequency,
             CreatedUtc = DateTime.UtcNow.ToString("o"),
         };

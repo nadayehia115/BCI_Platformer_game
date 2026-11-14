@@ -25,14 +25,28 @@ public class BciSettings : ScriptableObject
     public string MainLevelScene = "GameScene";
     [Tooltip("Tick to skip the whole BCI flow: PLAY loads the game at once (for working on the game without the headset).")]
     public bool SkipBciFlow = false;
+    [Tooltip("The monitor-contrast screen (a dark grey box, RGB 5,5,5, on black). OFF for now: the box did not show up on the player's monitor. " +
+             "The code and the BciContrast scene are still there; tick this to bring the screen back before the headset check.")]
+    public bool ShowContrastScreen = false;
 
-    [Header("Calibration (a trial = one FOCUS block + one IGNORE block)")]
-    public float FocusSeconds = 5f;
-    public float IgnoreSeconds = 5f;
-    [Tooltip("TrainingCalibration (new user): 12 trials = 2 minutes.")]
-    public int TrainingTrials = 12;
-    [Tooltip("SessionCalibration (old user): 3 trials = 30 seconds.")]
-    public int SessionTrials = 3;
+    [Header("Calibration (a trial = PREPARE + FLICKER + REST, the same sequence as the lab's Python paradigm)")]
+    [Tooltip("The pad's outline and the crosshair are shown, nothing flickers yet: the player gets ready.")]
+    public float PrepareSeconds = 2f;
+    [Tooltip("OFF (default): the Prepare phase comes ONCE, right before the first flicker; afterwards the trials are FLICKER + REST only. " +
+             "ON: a Prepare phase before every flicker (the lab paradigm's cue).")]
+    public bool PrepareEveryTrial = false;
+    [Tooltip("Seconds of calm after the scripts are ready, before the Prepare phase: the player reads the instruction. The EEG of this time " +
+             "(no flicker) is also used to test the model (false alarms).")]
+    public float IntroSeconds = 10f;
+    [Tooltip("The pad flickers and the player looks at the crosshair in its middle. This is the ONE class the classifier learns (4 s = one epoch).")]
+    public float FocusSeconds = 4f;
+    [Tooltip("The pad is gone, only the crosshair stays: the player relaxes.")]
+    public float RestSeconds = 2f;
+    [Tooltip("TrainingCalibration (new user): the time the on-screen timer counts down. The number of trials follows from it " +
+             "(120 s = 20 trials of flicker 4 s + rest 2 s). The one Prepare before the first flicker is not counted.")]
+    public float TrainingSeconds = 120f;
+    [Tooltip("SessionCalibration (old user): the same, for the short warm-up (30 s = 5 trials).")]
+    public float SessionSeconds = 30f;
 
     [Header("Ports (localhost)")]
     public int StatusPort = 5010;        // Unity listens: electrode status from file 1
@@ -42,7 +56,7 @@ public class BciSettings : ScriptableObject
     public int GamePort = 5005;          // Unity listens (BciListener): ping / switch from bci_game.py
 
     [Header("Look")]
-    [Tooltip("The character who speaks in the speech bubbles. Empty = Ralsei until you give a sprite.")]
+    [Tooltip("The character who speaks in the speech bubbles. Empty = Tenna (Assets/deltarune, through BciArt).")]
     public Sprite CharacterSprite;
 
     static BciSettings instance;

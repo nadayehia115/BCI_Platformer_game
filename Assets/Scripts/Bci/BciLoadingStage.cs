@@ -22,7 +22,6 @@ public class BciLoadingStage : BciStage
 
     BciSpeechBubble bubble;
     BciRunnerGame game;
-    TMP_Text jumpsLabel;
     Process extractProcess, trainProcess;
     bool trainingScriptsDone;                 // both Python scripts have run (or could not start)
 
@@ -31,9 +30,6 @@ public class BciLoadingStage : BciStage
         game = BciRunnerGame.Create(root, -230f);
         bubble = BciSpeechBubble.Create(root, new Vector2(0f, 1f), new Vector2(50f, -40f), 1000f);
         bubble.Say(WarmUpText);
-        jumpsLabel = BciUi.Text("Jumps", root, "SPACE / W / UP: JUMP", 44f, new Vector2(0f, -470f), new Vector2(1100f, 64f), Color.white);
-        jumpsLabel.outlineWidth = 0.3f;
-        jumpsLabel.outlineColor = Color.black;
         StartCoroutine(Train());
         StartCoroutine(Watch());
     }
@@ -101,6 +97,7 @@ public class BciLoadingStage : BciStage
             if (File.Exists(profile.ModelPath))
             {
                 game.Freeze();
+                bubble.SetPose(BciSpeechBubble.Pose.Laugh);
                 bubble.Say("Model saved! Let's go!");
                 yield return new WaitForSecondsRealtime(1.5f);
                 BciFlow.LoadMainLevel();
@@ -133,6 +130,5 @@ public class BciLoadingStage : BciStage
     protected override void Update()
     {
         base.Update();
-        if (game != null && jumpsLabel != null) jumpsLabel.text = $"SPACE / W / UP: JUMP      JUMPS: {game.Jumps}";
     }
 }
