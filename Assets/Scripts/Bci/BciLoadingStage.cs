@@ -7,6 +7,8 @@ using Debug = UnityEngine.Debug;
 
 // Stage 4: the interactive loading screen. While the model is trained behind the scenes, the player warms up with a small endless
 // runner (jump over the crates with Space / W / Up).
+// DEMO: the letter O leaves this screen for the level whenever the player wants (the training is stopped). When the training screen was
+// skipped with O (BciFlow.TrainingSkipped) there is nothing to train: the screen just waits, with the game, until the player presses O.
 //
 //   1. file 2 (the recorder) finishes saving the calibration CSV,
 //   2. 3-unicorn_offline_feature_extraction.py runs, then 4-unicorn_offline_classification_model.py (one after the other),
@@ -24,11 +26,17 @@ public class BciLoadingStage : BciStage
     BciRunnerGame game;
     Process extractProcess, trainProcess;
     bool trainingScriptsDone;                 // both Python scripts have run (or could not start)
+    bool leaving;
 
     protected override void BuildScreen(Transform root)
     {
         game = BciRunnerGame.Create(root, -230f);
         bubble = BciSpeechBubble.Create(root, new Vector2(0f, 1f), new Vector2(50f, -40f), 1000f);
+        if (BciFlow.TrainingSkipped)
+        {
+            bubble.Say("Training skipped. Warm up your fingers with the game, and press O when you are ready to go on.");
+            return;                                                         // nothing to train, nothing to watch: O leaves
+        }
         bubble.Say(WarmUpText);
         StartCoroutine(Train());
         StartCoroutine(Watch());
@@ -130,5 +138,15 @@ public class BciLoadingStage : BciStage
     protected override void Update()
     {
         base.Update();
+        var kb = UnityEngine.InputSystem.Keyboard.current;
+        if (!leaving && kb != null && kb.oKey.wasPressedThisFrame)
+        {
+            leaving = true;
+            StopAllCoroutines();
+            var manager = BciProcessManager.Instance;
+            manager.Stop(BciFlow.ExtractTag, false);                        // (whatever is still training is dropped)
+            manager.Stop(BciFlow.TrainTag, false);
+            BciFlow.SkipCalibration();
+        }
     }
 }

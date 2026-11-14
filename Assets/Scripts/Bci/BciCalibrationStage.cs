@@ -37,6 +37,22 @@ public class BciCalibrationStage : BciStage
 
     protected override bool AllowEscape => true;
 
+    bool skipped;
+
+    protected override void Update()
+    {
+        base.Update();
+        // DEMO: the letter O leaves the calibration at once (the recorder, if it runs, is told to finish)
+        var kb = UnityEngine.InputSystem.Keyboard.current;
+        if (!skipped && kb != null && kb.oKey.wasPressedThisFrame)
+        {
+            skipped = true;
+            StopAllCoroutines();
+            if (isTraining) BciMarkerSender.SendCommand("finish");
+            BciFlow.SkipCalibration();
+        }
+    }
+
     protected override void BuildScreen(Transform root)
     {
         isTraining = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == BciFlow.TrainingScene;

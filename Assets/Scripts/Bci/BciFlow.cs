@@ -32,6 +32,7 @@ public static class BciFlow
     public static void Begin(BciProfile profile)
     {
         BciProfile.Active = profile;
+        TrainingSkipped = false;
         profile.Save();
         profile.ApplyToSsvep();
         if (profile.IsNewUser && File.Exists(profile.FlagPath)) File.Delete(profile.FlagPath);   // an old failure flag must not misdirect the new run
@@ -86,7 +87,11 @@ public static class BciFlow
     public static string CalibrationSceneForUser() =>
         BciProfile.Active != null && BciProfile.Active.IsNewUser ? TrainingScene : SessionScene;
 
-    public static void AfterTraining() => SceneManager.LoadScene(LoadingScene);
+    public static void AfterTraining()
+    {
+        TrainingSkipped = false;
+        SceneManager.LoadScene(LoadingScene);
+    }
 
     public static void AfterSession() => LoadMainLevel();
 
@@ -100,11 +105,37 @@ public static class BciFlow
 
     public static void LoadMainLevel()
     {
-        StartClassifier();
+        var p = BciProfile.Active;
+        if (p != null && p.ModelExists) StartClassifier();
+        else Debug.Log("BCI: no trained model for this profile, so no live classifier: use the T key for the power (demo).");
         SceneManager.LoadScene(Settings.MainLevelScene);
     }
 
-    public static void RetryCalibration() => SceneManager.LoadScene(CalibrationSceneForUser());
+    // DEMO: the letter O skips ONE screen at a time, when the player wants it.
+    //   TrainingCalibration (new user): the recording is cut short and the loading screen comes next, WITHOUT training (TrainingSkipped):
+    //                                   its warm-up game stays until the player presses O once more;
+    //   SessionCalibration (old user):  the level (the saved model is used as it is);
+    //   BciLoading:                     the level (a model that is not ready yet is dropped).
+    // A new user who skipped has no model, so the live classifier does not start and the T key stands in for it.
+    public static bool TrainingSkipped;
+
+    public static void SkipCalibration()
+    {
+        bool training = SceneManager.GetActiveScene().name == TrainingScene;
+        Debug.Log("BCI: O pressed - calibration skipped (demo)" + (training ? ": the loading screen comes next, without training." : "."));
+        if (training)
+        {
+            TrainingSkipped = true;
+            SceneManager.LoadScene(LoadingScene);
+        }
+        else LoadMainLevel();
+    }
+
+    public static void RetryCalibration()
+    {
+        TrainingSkipped = false;
+        SceneManager.LoadScene(CalibrationSceneForUser());
+    }
 
     // Leave the flow: no script keeps running, the main menu comes back.
     public static void Abort()
